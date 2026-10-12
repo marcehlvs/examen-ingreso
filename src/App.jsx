@@ -200,7 +200,6 @@ export default function App() {
       </div>
 
       <header className="hero">
-        <p className="school">E.E.S.T. N° 7 Quilmes · Taller Regional Quilmes</p>
         <h1>Examen modelo de ingreso</h1>
         <p className="sub">Matemática · {mode === 'practica' ? 'ejercicios generados al azar' : `${questions.length} preguntas · ${TOTAL} puntos · sin calculadora`}</p>
 
@@ -292,7 +291,10 @@ export default function App() {
       </footer>
       </>)}
 
-      <p className="credit">Creado por el Prof. Juan Marcelo Bejarano</p>
+      <p className="credit">
+        Creado por el Prof. Juan Marcelo Bejarano
+        <span className="credit-note">Material de práctica no oficial</span>
+      </p>
 
       {pending && (
         <div className="overlay">

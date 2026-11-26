@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 import Rich from '../../shared/Rich'
 import { XYChart, PieChart } from './Charts'
+import { Plane, TriangleFigure } from './Geometry'
 import Printable from './Printable'
 import { fieldsOf, isFieldOk, isFilled, isItemOk, show } from './check'
+
+const row0 = (item) => item.table.rows[0].length
 
 const load = (key) => {
   try { return JSON.parse(localStorage.getItem(key)) || {} } catch { return {} }
@@ -35,19 +38,33 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
       </span>
     )
   } else {
+    // Teclas de ayuda para los símbolos difíciles de escribir en el celular.
+    const keys = { factor: ['×', '^'], poly: ['x', '^', '+', '−'], set: ['−', '/', '∅'] }[field.kind] || []
     control = (
       <span className="inrow">
         {field.prefix && <b>{field.prefix}</b>}
         <input className={cls} type="text" value={value || ''} disabled={disabled} aria-label={name} autoComplete="off" autoCapitalize="off"
           onChange={(e) => onChange(e.target.value)} />
-        {field.kind === 'factor' && !disabled && ['×', '^'].map((s) => (
-          <button key={s} type="button" className="key" aria-label={s === '×' ? 'Agregar por' : 'Agregar exponente'} onClick={() => onChange((value || '') + s)}>{s}</button>
-        ))}
         {field.suffix && <b>{field.suffix}</b>}
       </span>
     )
+    if (keys.length && !disabled) {
+      control = (
+        <span className="withkeys">
+          {control}
+          <span className="keys">
+            {keys.map((s) => (
+              <button key={s} type="button" className="key" aria-label={`Agregar ${s}`}
+                onClick={(e) => { e.preventDefault(); onChange(s === '∅' ? s : (value || '') + s) }}>{s}</button>
+            ))}
+          </span>
+        </span>
+      )
+    }
   }
-  return compact ? control : <label className="field">{label}{control}</label>
+  if (compact) return control
+  const Tag = ['factor', 'poly', 'set'].includes(field.kind) ? 'div' : 'label'
+  return <Tag className="field">{label}{control}</Tag>
 }
 
 // mode 'practica': cada ítem se comprueba por separado. mode 'examen': se corrige todo al final.
@@ -105,6 +122,10 @@ export default function Activity({ activity, course, term }) {
         </header>
         {item.prompt && <p className="prompt"><Rich text={item.prompt} /></p>}
 
+        {item.figure && <TriangleFigure figure={item.figure} choices={item.fields.map((f) => values[f.key])} />}
+
+        {item.plane && <Plane value={values[item.plane.key]} disabled={submitted} mark={markOf(item.plane)} onChange={(v) => change(item, item.plane.key, v)} />}
+
         {item.fields && (
           <div className="fields">
             {item.fields.map((f) => (
@@ -115,7 +136,7 @@ export default function Activity({ activity, course, term }) {
 
         {item.table && (
           <div className="tablewrap">
-            <table className="dtable">
+            <table className={`dtable ${row0(item) > 4 ? 'wide' : ''}`}>
               {item.table.head && <thead><tr>{item.table.head.map((h) => <th key={h}>{h}</th>)}</tr></thead>}
               <tbody>
                 {item.table.rows.map((row, r) => (

@@ -3,6 +3,7 @@
 import { createPortal } from 'react-dom'
 import Rich from '../../shared/Rich'
 import { XYChart } from './Charts'
+import { Plane, TriangleFigure } from './Geometry'
 import { fieldsOf } from './check'
 
 const Line = ({ label, unit }) => (
@@ -11,6 +12,8 @@ const Line = ({ label, unit }) => (
 
 // En papel no se toca ni se usan botones: se reemplazan esas indicaciones.
 const paperText = (text) => text
+  .replace(' Tocá dos puntos de la recta en el plano.', '')
+    .replace(' Elegí las opciones y mirá cómo queda la construcción.', '')
   .replace(' Podés tocar el gráfico o usar los botones − y +.', '')
   .replace('escribí cuántos grados le corresponden a cada sector.', 'indicá cuántos grados le corresponden a cada sector y dibujalo.')
 
@@ -29,7 +32,8 @@ function PrintChart({ chart }) {
 }
 
 function PrintItem({ item }) {
-  const fields = item.table || item.chart ? [] : fieldsOf(item)
+  const fields = item.table || item.chart || item.plane ? [] : fieldsOf(item)
+  const needsSpace = fields.some((f) => f.kind === 'poly' || f.kind === 'set')
   const isCalc = fields.length === 1 && fields[0].label === 'Resultado'
   const isAngle = fields[0]?.kind === 'angle'
   const isFactor = fields.some((f) => f.kind === 'factor')
@@ -49,12 +53,14 @@ function PrintItem({ item }) {
       )}
       {item.chart && <PrintChart chart={item.chart} />}
 
-      {(isCalc || isAngle) && <div className="p-space" />}
+      {item.plane && <div className="p-plane"><Plane value="" disabled onChange={() => {}} /></div>}
+      {item.figure && <div className="p-tri"><TriangleFigure figure={item.figure} choices={[]} /></div>}
+      {(isCalc || isAngle || needsSpace) && <div className="p-space" />}
       {isCalc && <Line label="Resultado:" />}
       {isAngle && <p className="p-line"><span>Resultado:</span><i /><b>°</b><i /><b>′</b><i /><b>″</b></p>}
       {isFactor && <><div className="p-space" />{fields.map((f) => <Line key={f.key} label={f.aria} />)}</>}
-      {!isCalc && !isAngle && !isFactor && fields.map((f) => (
-        <Line key={f.key} label={`${f.label.replace(/[?¿]$/, '')}${f.label.endsWith('?') ? '?' : ':'}`} unit={null} />
+      {!isCalc && !isAngle && !isFactor && fields.map((f) => (f.kind === 'set' ? <Line key={f.key} label="S =" /> :
+        <Line key={f.key} label={/[?=]$/.test(f.label) ? f.label : `${f.label}:`} unit={null} />
       ))}
     </div>
   )
@@ -75,7 +81,7 @@ export default function Printable({ activity, course, term }) {
               {i === 0 && (
                 <>
                   <h3>Ejercicio {e.n}. {e.title}</h3>
-                  {e.statement && <p><Rich text={e.statement.replace(/ (Podés escribir|Completá grados)[^]*$/, '')} /></p>}
+                  {e.statement && <p><Rich text={e.statement.replace(' con el botón ∅', '').replace(/ (Podés escribir|Completá grados|Para escribir)[^]*$/, '')} /></p>}
                   {e.data && <p className="p-data">{e.data}</p>}
                 </>
               )}

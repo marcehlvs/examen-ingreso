@@ -2,7 +2,7 @@
 
 App React + Vite (KaTeX para las fórmulas) con dos secciones:
 
-- **Intensificación** (`#/intensificacion`): recuperación de contenidos adeudados y acreditación de cuatrimestres pendientes. Organizada por curso (1.º a 6.º), sección y cuatrimestre: un modelo en modo práctica y dos exámenes, cada uno con botón «Descargar PDF» (hoja para resolver, sin respuestas; `engine/Printable.jsx`). Está cargado 1.º A.
+- **Intensificación** (`#/intensificacion`): recuperación de contenidos adeudados y acreditación de cuatrimestres pendientes. Organizada por curso (1.º a 6.º), sección y cuatrimestre: un modelo en modo práctica y dos exámenes, cada uno con botón «Descargar PDF» (hoja para resolver, sin respuestas; `engine/Printable.jsx`). Están cargados 1.º A y 2.º A.
 - **Examen de ingreso** (`#/ingreso`, temporal): tres exámenes de 100 puntos, con corrección al final, desarrollo paso a paso, cronómetro y estadísticas. Las respuestas se guardan solo en el navegador (localStorage).
 
 ## Uso

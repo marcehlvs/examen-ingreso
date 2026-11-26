@@ -256,3 +256,18 @@ input.no, select.no { border-color: var(--no) !important; background: var(--no-b
   .p-pie > div { flex: 1; }
   .printable .p-credit { text-align: center; font-size: 9pt; margin: 0; }
 }
+
+.withkeys { display: grid; gap: 6px; }
+.keys { display: flex; gap: 6px; }
+.keys .key { width: 46px; height: 36px; }
+.chart.plane { max-width: 360px; }
+.chart.tri { max-width: 340px; cursor: default; margin-bottom: 10px; }
+.dtable.wide { font-size: 11px; }
+.dtable.wide th, .dtable.wide td { padding: 3px 1px; }
+.dtable.wide input { min-width: 40px; font-size: 14px; }
+@media print {
+  .p-plane { width: 72mm; margin: 4px auto 0; }
+  .p-plane .chart, .p-tri .chart { max-width: none; background: none; border: 0; }
+  .p-plane .grid line { stroke: #999; }
+  .p-tri { width: 100mm; margin: 4px auto 0; }
+}

@@ -107,3 +107,9 @@ export function statsExercise({ n, statement, data, variable, categories }) {
     ],
   }
 }
+
+export const activitySet = (prefix, year, modelo, ex1, ex2) => [
+  { slug: 'practica', mode: 'practica', title: `Práctica: modelo ${year}`, description: 'El modelo de la intensificación. Comprobá cada ítem y mirá el desarrollo paso a paso.', exercises: modelo },
+  { slug: 'examen-1', mode: 'examen', title: 'Examen 1', description: 'Se corrige todo al final.', exercises: ex1 },
+  { slug: 'examen-2', mode: 'examen', title: 'Examen 2', description: 'Se corrige todo al final.', exercises: ex2 },
+].map((a) => ({ ...a, id: `${prefix}-${a.slug}` }))

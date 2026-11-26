@@ -7,12 +7,14 @@ export const SECTIONS = [
   {
     path: 'intensificacion',
     label: 'Intensificación',
+    short: 'Intensificación',
     description: 'Recuperá los contenidos de Matemática adeudados y acreditá los cuatrimestres pendientes.',
     Component: Intensificacion,
   },
   {
     path: 'ingreso',
     label: 'Examen de ingreso',
+    short: 'Ingreso',
     description: 'Exámenes modelo de ingreso a 2° año 2027.',
     Component: Ingreso,
   },

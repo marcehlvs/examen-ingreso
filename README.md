@@ -18,6 +18,14 @@ npm run build    # genera /dist
 - `src/ingreso/`: todo lo del examen de ingreso. La etiqueta «Nuevo» se controla con `NEW_EXAMS` en `Ingreso.jsx`.
 - `src/shared/Rich.jsx`: fórmulas entre `$...$` (LaTeX). Un signo de pesos va escapado: `\$450`.
 
+## Sistema de diseño
+- `src/index.css` arranca con los **tokens** (color, tipografía, espaciado, bordes, sombras, tamaño mínimo de toque). Todo el CSS usa `var(--...)`: para cambiar la identidad visual se tocan solo los tokens.
+- **Modo oscuro**: sigue el tema del sistema y se puede forzar con el botón de la barra (se guarda en el navegador). Los gráficos y figuras SVG quedan sobre un fondo «papel» fijo (`--paper`).
+- **Responsive**: pensado para 375 px (móvil), 768 px (tablet) y 1280 px o más (escritorio: ejercicios en dos columnas).
+- **Componentes compartidos** (`src/shared/`): `Dialog` (modal con foco atrapado y Esc), `Notice` (éxito / error / aviso / info), `Empty` (estado vacío), `ThemeToggle`, `storage.js`.
+- **Accesibilidad**: enlace «Saltar al contenido», foco visible, `aria-current`, `aria-expanded`, barras de progreso con `role="progressbar"`, respuestas marcadas con ícono además del color, `prefers-reduced-motion`.
+- **Estados**: vacío (estadísticas, sin respuestas incorrectas), error (página no encontrada, almacenamiento bloqueado, ítems a revisar), éxito (resultado) y cargando («Preparando…» del PDF).
+
 ## Quitar el examen de ingreso
 1. En `src/sections.js`, borrar `import Ingreso ...` y su bloque en `SECTIONS`.
 2. Borrar la carpeta `src/ingreso/`.

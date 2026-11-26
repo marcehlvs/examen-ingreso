@@ -1,5 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Rich from '../../shared/Rich'
+import Dialog from '../../shared/Dialog'
+import Notice from '../../shared/Notice'
+import { storageAvailable } from '../../shared/storage'
 import { XYChart, PieChart } from './Charts'
 import { Plane, TriangleFigure } from './Geometry'
 import Printable from './Printable'
@@ -73,6 +76,8 @@ export default function Activity({ activity, course, term }) {
   const [state, setState] = useState(() => ({ values: {}, checked: {}, submitted: false, ...load(storageKey) }))
   const [open, setOpen] = useState({})
   const [ask, setAsk] = useState(null) // 'submit' | 'reset' | null
+  const [printing, setPrinting] = useState(false)
+  const canSave = useMemo(storageAvailable, [])
   const { values, checked, submitted } = state
   const exam = activity.mode === 'examen'
 
@@ -104,10 +109,16 @@ export default function Activity({ activity, course, term }) {
   const download = () => {
     const previous = document.title
     document.title = `${course} - ${term} - ${activity.title}`.replace(/[:«»]/g, '')
-    window.addEventListener('afterprint', () => { document.title = previous }, { once: true })
-    window.print()
+    setPrinting(true)
+    window.addEventListener('afterprint', () => { document.title = previous; setPrinting(false) }, { once: true })
+    // Un instante para que se vea el estado «Preparando…» antes de abrir el diálogo de impresión.
+    setTimeout(() => window.print(), 120)
   }
-  const pdfButton = <button type="button" className="btn ghost" onClick={download}>⬇ Descargar PDF</button>
+  const pdfButton = (
+    <button type="button" className={`btn ghost ${printing ? 'loading' : ''}`} onClick={download} disabled={printing} aria-busy={printing}>
+      {printing ? 'Preparando…' : <><span aria-hidden="true">⬇</span> Descargar PDF</>}
+    </button>
+  )
 
   const renderItem = (item) => {
     const reveal = exam ? submitted : !!checked[item.id]
@@ -115,10 +126,10 @@ export default function Activity({ activity, course, term }) {
     const markOf = (f) => (reveal ? isFieldOk(f, values[f.key]) : undefined)
     const wrong = reveal ? fieldsOf(item).filter((f) => !isFieldOk(f, values[f.key])) : []
     return (
-      <article key={item.id} id={`it-${item.id}`} className="card">
+      <article key={item.id} id={`it-${item.id}`} className="card" aria-label={`Ítem ${item.id}`}>
         <header className="card-head">
           <span className="qnum">{item.id}</span>
-          {reveal && <span className={`badge ${ok ? 'good' : 'bad'}`}>{ok ? 'Correcto' : 'A revisar'}</span>}
+          {reveal && <span className={`badge ${ok ? 'good' : 'bad'}`}><span aria-hidden="true">{ok ? '✓' : '!'}</span>{ok ? 'Correcto' : 'A revisar'}</span>}
         </header>
         {item.prompt && <p className="prompt"><Rich text={item.prompt} /></p>}
 
@@ -161,14 +172,14 @@ export default function Activity({ activity, course, term }) {
               onClick={() => setState((s) => ({ ...s, checked: { ...s.checked, [item.id]: true } }))}>Comprobar</button>
           )}
           {(!exam || submitted) && (
-            <button type="button" className="link" onClick={() => setOpen((o) => ({ ...o, [item.id]: !o[item.id] }))}>
+            <button type="button" className="link" aria-expanded={!!open[item.id]} onClick={() => setOpen((o) => ({ ...o, [item.id]: !o[item.id] }))}>
               {open[item.id] ? 'Ocultar desarrollo' : 'Ver desarrollo paso a paso'}
             </button>
           )}
         </div>
 
         {wrong.length > 0 && (
-          <p className="hint">
+          <p className="hint" role="status">
             {exam
               ? <>Respuesta correcta: {wrong.map((f) => `${f.aria || f.label || ''} ${show(f)}`.replace(/\$/g, '').trim()).join(' · ')}</>
               : 'Revisá los casilleros marcados en rojo y volvé a comprobar.'}
@@ -190,10 +201,13 @@ export default function Activity({ activity, course, term }) {
       <Printable activity={activity} course={course} term={term} />
 
       {exam && submitted && (
-        <section className="result">
-          <h2>Resultado</h2>
+        <section className="result" aria-labelledby="resultado">
+          <h2 id="resultado">Resultado</h2>
           <p className="big">{okCount}<small> / {items.length} ítems correctos</small></p>
           <p className="pct">Un ítem cuenta como correcto cuando todos sus casilleros están bien.</p>
+          {okCount === items.length
+            ? <Notice tone="success">¡Excelente! Resolviste todos los ítems bien.</Notice>
+            : <Notice tone="info">Abrí «Ver desarrollo paso a paso» en los ítems marcados para repasar cómo se resuelven.</Notice>}
           <ul className="breakdown">
             {activity.exercises.map((e) => (
               <li key={e.n} className="brow"><span>Ej. {e.n} · {e.title}</span><strong>{e.items.filter((i) => isItemOk(i, values)).length}/{e.items.length}</strong></li>
@@ -201,7 +215,20 @@ export default function Activity({ activity, course, term }) {
           </ul>
         </section>
       )}
-      {!exam && <p className="tally">Ítems correctos comprobados: <strong>{checkedOk}/{items.length}</strong></p>}
+      {!canSave && <Notice tone="warn">Tu navegador no permite guardar el avance: si cerrás la página, vas a perder lo que resolviste.</Notice>}
+
+      {!(exam && submitted) && (
+        <div className="tally" role="group" aria-label="Avance">
+          <div className="brow">
+            <span>{exam ? 'Ítems completos' : 'Ítems correctos comprobados'}</span>
+            <strong>{exam ? items.length - pending : checkedOk}/{items.length}</strong>
+          </div>
+          <div className="bar small" role="progressbar" aria-valuemin={0} aria-valuemax={items.length}
+            aria-valuenow={exam ? items.length - pending : checkedOk} aria-label="Avance de la actividad">
+            <div className="fill" style={{ width: `${((exam ? items.length - pending : checkedOk) / items.length) * 100}%` }} />
+          </div>
+        </div>
+      )}
 
       {activity.exercises.map((e) => (
         <section key={e.n} className="section">
@@ -220,17 +247,16 @@ export default function Activity({ activity, course, term }) {
       </div>
 
       {ask && (
-        <div className="overlay">
-          <div className="dialog" role="alertdialog">
-            <p>{ask === 'submit'
-              ? `Tenés ${pending} ${pending === 1 ? 'ítem incompleto' : 'ítems incompletos'}. ¿Corregir igual?`
-              : 'Se borrarán las respuestas de esta actividad. ¿Empezar de nuevo?'}</p>
-            <div className="drow">
-              <button type="button" className="btn ghost" onClick={() => setAsk(null)}>Cancelar</button>
-              <button type="button" className="btn" onClick={ask === 'submit' ? submit : reset}>Aceptar</button>
-            </div>
-          </div>
-        </div>
+        <Dialog
+          title={ask === 'submit' ? '¿Corregir igual?' : '¿Empezar de nuevo?'}
+          confirmLabel={ask === 'submit' ? 'Corregir' : 'Sí, borrar'}
+          onCancel={() => setAsk(null)}
+          onConfirm={ask === 'submit' ? submit : reset}
+        >
+          {ask === 'submit'
+            ? `Tenés ${pending} ${pending === 1 ? 'ítem incompleto' : 'ítems incompletos'}.`
+            : 'Se borrarán las respuestas de esta actividad.'}
+        </Dialog>
       )}
     </>
   )

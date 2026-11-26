@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { SECTIONS, QUESTIONS, TOTAL } from './examData'
 import Rich from '../shared/Rich'
+import Dialog from '../shared/Dialog'
+import Notice from '../shared/Notice'
+import Empty from '../shared/Empty'
+import { storageAvailable } from '../shared/storage'
 import Figura from './Figura'
 import Figura2 from './Figura2'
 import { SECTIONS2, QUESTIONS2 } from './examData2'
@@ -47,6 +51,7 @@ export default function Ingreso() {
   const [usedMs, setUsedMs] = useState(saved.usedMs ?? null)
   const [now, setNow] = useState(Date.now())
   const [pending, setPending] = useState(null) // 'submit' | 'reset' | null
+  const canSave = useMemo(storageAvailable, [])
 
   useEffect(() => {
     try {
@@ -132,19 +137,20 @@ export default function Ingreso() {
     const sel = answers[q.id]
     const reveal = submitted
     return (
-      <article key={q.id} className="card" id={`q-${q.id}`}>
+      <article key={q.id} className="card" id={`q-${q.id}`} aria-labelledby={`p-${q.id}`}>
         <header className="card-head">
           <span className="qnum">{q.n || q.id}</span>
           <span className="qpts">{q.pts} {q.pts === 1 ? 'punto' : 'puntos'}</span>
           {reveal && (
-            <span className={`badge ${sel === q.answer ? 'good' : 'bad'}`}>
+            <span className={`badge ${sel === undefined ? 'idle' : sel === q.answer ? 'good' : 'bad'}`}>
+              <span aria-hidden="true">{sel === undefined ? '–' : sel === q.answer ? '✓' : '✗'}</span>
               {sel === undefined ? 'Sin responder' : sel === q.answer ? 'Correcta' : 'Incorrecta'}
             </span>
           )}
         </header>
-        <p className="prompt"><Rich text={q.prompt} /></p>
+        <p className="prompt" id={`p-${q.id}`}><Rich text={q.prompt} /></p>
         {q.fig === true ? <Figura /> : q.fig && <Figura2 tipo={q.fig} />}
-        <div className="options" role="radiogroup">
+        <div className="options" role="radiogroup" aria-labelledby={`p-${q.id}`}>
           {q.options.map((opt, i) => {
             let cls = 'opt'
             if (sel === i) cls += ' sel'
@@ -162,13 +168,15 @@ export default function Ingreso() {
               >
                 <span className="letter">{q.options.length === 2 ? (i === 0 ? 'V' : 'F') : LETTERS[i]}</span>
                 <span className="otext"><Rich text={opt} /></span>
+                {reveal && i === q.answer && <span className="mark" aria-label="Respuesta correcta">✓</span>}
+                {reveal && sel === i && i !== q.answer && <span className="mark" aria-label="Tu respuesta, incorrecta">✗</span>}
               </button>
             )
           })}
         </div>
         {submitted && (
           <>
-            <button type="button" className="link" onClick={() => toggleSol(q.id)}>
+            <button type="button" className="link" aria-expanded={!!openSol[q.id]} onClick={() => toggleSol(q.id)}>
               {openSol[q.id] ? 'Ocultar desarrollo' : 'Ver desarrollo paso a paso'}
             </button>
             {openSol[q.id] && (
@@ -189,25 +197,28 @@ export default function Ingreso() {
 
   return (
     <>
-      <div className="topbar">
+      <div className="topbar" role="region" aria-label="Progreso del examen">
         <div className="topbar-row">
           <strong>Ingreso a 2° año 2027</strong>
           {timerRunning && (
-            <span className={`timer ${remaining < 5 * 60 * 1000 ? 'low' : ''}`}>⏱ {fmt(remaining)}</span>
+            <span role="timer" aria-label={`Tiempo restante: ${fmt(remaining)}`} className={`timer ${remaining < 5 * 60 * 1000 ? 'low' : ''}`}><span aria-hidden="true">⏱ </span>{fmt(remaining)}</span>
           )}
           <span>{answered}/{questions.length}{showScore ? ` · ${score}/${TOTAL} pts` : ''}</span>
         </div>
-        <div className="bar"><div className="fill" style={{ width: `${(answered / questions.length) * 100}%` }} /></div>
+        <div className="bar" role="progressbar" aria-label="Preguntas respondidas" aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={answered}>
+          <div className="fill" style={{ width: `${(answered / questions.length) * 100}%` }} />
+        </div>
       </div>
 
       <header className="hero">
+        <p className="eyebrow">Ingreso a 2.º año 2027</p>
         <h1>{mode === 'examen2' ? 'Examen de ingreso N.º 2' : mode === 'examen3' ? 'Examen de ingreso N.º 3' : 'Examen modelo de ingreso'}</h1>
         <p className="sub">Matemática · {questions.length} preguntas · {TOTAL} puntos · sin calculadora</p>
 
-        <div className="modes" role="tablist">
+        <div className="modes" role="group" aria-label="Elegir examen">
           {[['examen', 'Examen 1'], ['examen2', 'Examen 2'], ['examen3', 'Examen 3']].map(([m, label]) => (
             <button
-              key={m} type="button" role="tab" aria-selected={mode === m}
+              key={m} type="button" aria-pressed={mode === m}
               className={mode === m ? 'on' : ''} disabled={submitted || !!startedAt}
               onClick={() => { setShowStats(false); setMode(m) }}
             >
@@ -221,15 +232,16 @@ export default function Ingreso() {
             ? 'El examen modelo. Respondé todo y corregí al final; después ves el desarrollo de cada pregunta.'
             : 'Para resolver en 2 horas con papel y lápiz. Marcá cada resultado y corregí al final.'}
         </p>
-        <button type="button" className="btn ghost start" disabled={!!timerRunning} onClick={() => setShowStats((v) => !v)}>
-          {showStats ? '← Volver' : '📊 Mis estadísticas'}
-        </button>
-
-        {!showStats && !submitted && !startedAt && (
-          <button type="button" className="btn ghost start" onClick={() => { setNow(Date.now()); setStartedAt(Date.now()) }}>
-            ⏱ Iniciar cronómetro ({minutesFor(mode)} min)
+        <div className="hero-actions">
+          {!showStats && !submitted && !startedAt && (
+            <button type="button" className="btn" onClick={() => { setNow(Date.now()); setStartedAt(Date.now()) }}>
+              <span aria-hidden="true">⏱</span> Iniciar cronómetro ({minutesFor(mode)} min)
+            </button>
+          )}
+          <button type="button" className="btn ghost" disabled={!!timerRunning} onClick={() => setShowStats((v) => !v)}>
+            {showStats ? '← Volver al examen' : <><span aria-hidden="true">📊</span> Mis estadísticas</>}
           </button>
-        )}
+        </div>
 
         {!showStats && (
           <nav className="chips" aria-label="Ir a un ejercicio">
@@ -240,10 +252,12 @@ export default function Ingreso() {
         )}
       </header>
 
-      {showStats ? <Stats /> : (<>
+      {!canSave && <Notice tone="warn">Tu navegador no permite guardar el avance: si cerrás la página, vas a perder tus respuestas.</Notice>}
+
+      {showStats ? <Stats onStart={() => setShowStats(false)} /> : (<>
       {submitted && (
-        <section className="result">
-          <h2>Resultado</h2>
+        <section className="result" aria-labelledby="resultado">
+          <h2 id="resultado">Resultado</h2>
           <p className="big">{score}<small> / {TOTAL}</small></p>
           <p className="pct">
             {Math.round((score / TOTAL) * 100)}% de respuestas puntuadas
@@ -257,12 +271,24 @@ export default function Ingreso() {
               </li>
             ))}
           </ul>
+          {score === TOTAL
+            ? <Notice tone="success">¡Perfecto! Sacaste el puntaje máximo.</Notice>
+            : score >= TOTAL * 0.6
+              ? <Notice tone="success">¡Muy bien! Repasá los ejercicios con menos puntaje para seguir mejorando.</Notice>
+              : <Notice tone="info">Todavía hay temas para repasar. Mirá el desarrollo paso a paso y volvé a intentarlo.</Notice>}
           <label className="check">
             <input type="checkbox" checked={onlyWrong} onChange={(e) => setOnlyWrong(e.target.checked)} />
             Mostrar solo las que no acerté
           </label>
           <button type="button" className="btn ghost" onClick={reset}>Volver a intentarlo</button>
         </section>
+      )}
+
+      {submitted && onlyWrong && bySection.every((sec) => sec.qs.every(isCorrect)) && (
+        <Empty icon="🎉" title="No hay respuestas incorrectas"
+          action={<button type="button" className="btn ghost" onClick={() => setOnlyWrong(false)}>Ver todas las preguntas</button>}>
+          Acertaste todas las preguntas de este examen.
+        </Empty>
       )}
 
       {bySection.map((sec) => {
@@ -293,19 +319,16 @@ export default function Ingreso() {
 
 
       {pending && (
-        <div className="overlay">
-          <div className="dialog" role="alertdialog">
-            <p>
-              {pending === 'submit'
-                ? `Te faltan ${questions.length - answered} preguntas sin responder. ¿Corregir igual?`
-                : 'Se borrarán todas tus respuestas. ¿Empezar de nuevo?'}
-            </p>
-            <div className="drow">
-              <button type="button" className="btn ghost" onClick={() => setPending(null)}>Cancelar</button>
-              <button type="button" className="btn" onClick={pending === 'submit' ? finish : doReset}>Aceptar</button>
-            </div>
-          </div>
-        </div>
+        <Dialog
+          title={pending === 'submit' ? '¿Corregir igual?' : '¿Empezar de nuevo?'}
+          confirmLabel={pending === 'submit' ? 'Corregir' : 'Sí, borrar'}
+          onCancel={() => setPending(null)}
+          onConfirm={pending === 'submit' ? finish : doReset}
+        >
+          {pending === 'submit'
+            ? `Te ${questions.length - answered === 1 ? 'falta' : 'faltan'} ${questions.length - answered} ${questions.length - answered === 1 ? 'pregunta' : 'preguntas'} sin responder.`
+            : 'Se borrarán todas tus respuestas.'}
+        </Dialog>
       )}
     </>
   )

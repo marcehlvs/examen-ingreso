@@ -1,20 +1,22 @@
 import { COURSES } from './data/courses'
 import Activity from './engine/Activity'
+import Empty from '../shared/Empty'
 
 const BASE = '#/intensificacion'
 
 function Crumbs({ trail }) {
   return (
-    <p className="crumbs">
+    <nav className="crumbs" aria-label="Ruta de navegación">
       {trail.map(([label, href], i) => (
-        <span key={label}>{i > 0 && ' › '}{href ? <a href={href}>{label}</a> : <b>{label}</b>}</span>
+        <span key={label}>{href ? <a href={href}>{label}</a> : <b aria-current="page">{label}</b>}</span>
       ))}
-    </p>
+    </nav>
   )
 }
 
-const Header = ({ title, sub }) => (
+const Header = ({ title, sub, eyebrow }) => (
   <header className="hero">
+    {eyebrow && <p className="eyebrow">{eyebrow}</p>}
     <h1>{title}</h1>
     {sub && <p className="sub">{sub}</p>}
   </header>
@@ -28,12 +30,24 @@ export default function Intensificacion({ rest = [] }) {
   const term = section?.terms.find((t) => t.id === termId)
   const activity = term?.activities.find((a) => a.slug === slug)
 
+  // Error: la dirección no existe (enlace viejo o mal escrito).
+  if (courseId && !(activity || section)) {
+    return (
+      <Empty icon="🧭" title="No encontramos esa página"
+        action={<a className="btn" href={BASE}>Ver todos los cursos</a>}>
+        El enlace puede estar incompleto o el material todavía no está cargado.
+      </Empty>
+    )
+  }
+
   if (activity) {
     const back = `${BASE}/${course.id}/${sectionId}`
     return (
       <>
         <Crumbs trail={[['Cursos', BASE], [`${course.title} ${sectionId}`, back], [`${term.title}: ${activity.title}`]]} />
-        <Header title={activity.title} sub={`${course.title} «${sectionId}» · ${term.title} · ${activity.mode === 'examen' ? 'se corrige al final' : 'corrige ítem por ítem'}`} />
+        <Header title={activity.title}
+          eyebrow={`${course.title} «${sectionId}» · ${term.title}`}
+          sub={activity.mode === 'examen' ? 'Resolvé todo y corregí al final.' : 'Comprobá cada ítem a medida que avanzás.'} />
         <Activity key={activity.id} activity={activity} course={`${course.title} «${sectionId}»`} term={term.title} />
         <p className="backlink"><a href={back}>← Volver a {course.title} «{sectionId}»</a></p>
       </>
@@ -46,13 +60,14 @@ export default function Intensificacion({ rest = [] }) {
         <Crumbs trail={[['Cursos', BASE], [`${course.title} ${sectionId}`]]} />
         <Header title={`${course.title} «${sectionId}»`} sub="Elegí el cuatrimestre que necesitás recuperar." />
         {section.terms.map((t) => (
-          <section key={t.id} className="section">
-            <h2>{t.title}<em>{t.topics}</em></h2>
+          <section key={t.id} className="section" aria-labelledby={`term-${t.id}`}>
+            <h2 id={`term-${t.id}`}>{t.title}<em>{t.topics}</em></h2>
             <div className="tiles tight">
               {t.activities.map((a) => (
                 <a key={a.slug} className="tile" href={`${BASE}/${course.id}/${sectionId}/${t.id}/${a.slug}`}>
-                  <h2>{a.title} →</h2>
+                  <h3>{a.title}</h3>
                   <p>{a.description}</p>
+                  <span className="cta">Empezar →</span>
                 </a>
               ))}
             </div>
@@ -64,17 +79,21 @@ export default function Intensificacion({ rest = [] }) {
 
   return (
     <>
-      <Header title="Intensificación en Matemática"
-        sub="Una instancia para recuperar los contenidos adeudados durante el año y acreditar los cuatrimestres pendientes." />
+      <Header eyebrow="Intensificación" title="Intensificación en Matemática"
+        sub="Recuperá los contenidos adeudados y acreditá los cuatrimestres pendientes." />
       <div className="courses">
         {COURSES.map((c) => {
           const names = Object.keys(c.sections)
           return (
-            <article key={c.id} className={`course ${names.length ? '' : 'soon'}`}>
+            <article key={c.id} className={`course ${names.length ? '' : 'soon'}`} aria-label={c.title}>
               <h2>{c.title}</h2>
-              {names.length
-                ? names.map((s) => <a key={s} className="btn small" href={`${BASE}/${c.id}/${s}`}>Sección {s}</a>)
-                : <p>Próximamente</p>}
+              {names.length ? (
+                <div className="stack">
+                  {names.map((s) => (
+                    <a key={s} className="btn small" href={`${BASE}/${c.id}/${s}`} aria-label={`${c.title}, sección ${s}`}>Sección {s}</a>
+                  ))}
+                </div>
+              ) : <span className="pill">Próximamente</span>}
             </article>
           )
         })}

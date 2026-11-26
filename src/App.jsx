@@ -1,12 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SECTIONS } from './sections'
 import Home from './Home'
+import ThemeToggle from './shared/ThemeToggle'
 
 // Navegación por «#/ruta»: funciona en GitHub Pages sin configuración extra.
 const readPath = () => window.location.hash.replace(/^#\/?/, '')
 
 export default function App() {
   const [path, setPath] = useState(readPath)
+  const main = useRef(null)
+  const first = useRef(true)
 
   useEffect(() => {
     const onChange = () => { setPath(readPath()); window.scrollTo(0, 0) }
@@ -18,23 +21,35 @@ export default function App() {
   const section = SECTIONS.find((s) => s.path === root)
   useEffect(() => {
     document.title = `${section ? section.label : 'Inicio'} – Matemática`
-  }, [section])
+    // Al cambiar de pantalla el foco pasa al contenido (lectores de pantalla y teclado).
+    if (first.current) first.current = false
+    else main.current?.focus({ preventScroll: true })
+  }, [path, section])
 
   return (
     <div className="app">
-      <nav className="nav" aria-label="Secciones">
-        <a href="#/" className={!section ? 'on' : ''}>Inicio</a>
-        {SECTIONS.map((s) => (
-          <a key={s.path} href={`#/${s.path}`} className={section === s ? 'on' : ''}>{s.label}</a>
-        ))}
-      </nav>
+      <a className="skip" href="#contenido" onClick={(e) => { e.preventDefault(); main.current?.focus() }}>Saltar al contenido</a>
+      <div className="nav-wrap">
+        <nav className="nav" aria-label="Secciones">
+          <a href="#/" aria-current={!section ? 'page' : undefined}>Inicio</a>
+          {SECTIONS.map((s) => (
+            <a key={s.path} href={`#/${s.path}`} aria-current={section === s ? 'page' : undefined} aria-label={s.label}>
+              <span className="nav-full">{s.label}</span><span className="nav-short" aria-hidden="true">{s.short || s.label}</span>
+            </a>
+          ))}
+          <span className="spacer" />
+          <ThemeToggle />
+        </nav>
+      </div>
 
-      {section ? <section.Component rest={rest} /> : <Home />}
+      <main id="contenido" ref={main} tabIndex={-1}>
+        {section ? <section.Component rest={rest} /> : <Home />}
+      </main>
 
-      <p className="credit">
+      <footer className="credit">
         Creado por el Prof. Juan Marcelo Bejarano
         <span className="credit-note">Material de práctica no oficial</span>
-      </p>
+      </footer>
     </div>
   )
 }

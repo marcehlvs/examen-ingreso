@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import Empty from '../shared/Empty'
+import Dialog from '../shared/Dialog'
 import { SECTIONS } from './examData'
 import { getStats, weakSections, clearStats } from './studentStats'
 
@@ -6,7 +8,7 @@ const fmtDate = (t) => new Date(t).toLocaleDateString('es-AR', { day: '2-digit',
 const MODE = { examen: 'Examen 1', examen2: 'Examen 2', examen3: 'Examen 3', simulacro: 'Simulacro' }
 const level = (p) => (p >= 75 ? 'good' : p >= 50 ? 'mid' : 'low')
 
-export default function Stats() {
+export default function Stats({ onStart }) {
   const [, force] = useState(0)
   const [ask, setAsk] = useState(false)
   const st = getStats()
@@ -16,14 +18,15 @@ export default function Stats() {
 
   if (st.total === 0) {
     return (
-      <section className="section">
-        <div className="card"><p className="prompt">Todavía no hay datos. Resolvé y corregí un examen y acá vas a ver tus aciertos por ejercicio.</p></div>
-      </section>
+      <Empty icon="📊" title="Todavía no hay estadísticas"
+        action={onStart && <button type="button" className="btn" onClick={onStart}>Ir al examen</button>}>
+        Resolvé y corregí un examen y acá vas a ver tus aciertos por ejercicio.
+      </Empty>
     )
   }
 
   return (
-    <section className="section">
+    <section className="section stats-grid" aria-label="Mis estadísticas">
       <div className="card">
         <p className="statbig">{gp}%<small> de aciertos</small></p>
         <p className="qpts">{st.ok} correctas de {st.total} respondidas</p>
@@ -55,7 +58,7 @@ export default function Stats() {
       {sessions.length > 0 && (
         <div className="card">
           <h3 className="h3">Últimos exámenes</h3>
-          <div className="spark" aria-hidden="true">
+          <div className="spark" role="img" aria-label={`Puntajes de los últimos ${sessions.length} exámenes`}>
             {sessions.map((s, i) => <div key={i} className={`sbar ${level(s.score)}`} style={{ height: `${Math.max(6, s.score)}%` }} title={`${s.score}/100`} />)}
           </div>
           <ul className="slist">
@@ -66,17 +69,15 @@ export default function Stats() {
         </div>
       )}
 
-      <div className="footer">
-        {!ask ? (
-          <button type="button" className="btn ghost" onClick={() => setAsk(true)}>Borrar estadísticas</button>
-        ) : (
-          <>
-            <span className="qpts">¿Seguro? No se puede deshacer.</span>
-            <button type="button" className="btn ghost" onClick={() => setAsk(false)}>Cancelar</button>
-            <button type="button" className="btn" onClick={() => { clearStats(); setAsk(false); force((n) => n + 1) }}>Sí, borrar</button>
-          </>
-        )}
+      <div className="footer" style={{ gridColumn: '1 / -1' }}>
+        <button type="button" className="btn ghost" onClick={() => setAsk(true)}>Borrar estadísticas</button>
       </div>
+      {ask && (
+        <Dialog title="¿Borrar estadísticas?" confirmLabel="Sí, borrar" onCancel={() => setAsk(false)}
+          onConfirm={() => { clearStats(); setAsk(false); force((n) => n + 1) }}>
+          Se pierde todo tu historial y no se puede deshacer.
+        </Dialog>
+      )}
     </section>
   )
 }

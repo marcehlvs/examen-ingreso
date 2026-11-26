@@ -2,6 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { SECTIONS, QUESTIONS, TOTAL } from './examData'
 import Rich from './Rich'
 import Figura from './Figura'
+import Figura2 from './Figura2'
+import { SECTIONS2, QUESTIONS2 } from './examData2'
+import { SECTIONS3, QUESTIONS3 } from './examData3'
 import Practice from './Practice'
 import Stats from './Stats'
 import { generateSimulacro } from './generators'
@@ -9,7 +12,10 @@ import { recordAnswers, recordSession } from './studentStats'
 
 const STORAGE_KEY = 'examen-ingreso-2do-2027-v1'
 const LETTERS = ['A', 'B', 'C', 'D']
-const EXAM_MS = 90 * 60 * 1000 // 90 minutos
+const minutesFor = (mode) => (mode === 'examen2' || mode === 'examen3' ? 120 : 90)
+
+// Exámenes que muestran la etiqueta «Nuevo»: para quitarla, sacalos de esta lista.
+const NEW_EXAMS = ['examen2', 'examen3']
 
 const fmt = (ms) => {
   const t = Math.max(0, Math.floor(ms / 1000))
@@ -29,7 +35,7 @@ function loadSaved() {
 export default function App() {
   const saved = useMemo(loadSaved, [])
   const [answers, setAnswers] = useState(saved.answers || {})
-  const [mode, setMode] = useState(saved.mode === 'estadisticas' ? 'examen' : saved.mode || 'examen') // 'examen' | 'simulacro' | 'practica'
+  const [mode, setMode] = useState(saved.mode === 'estadisticas' ? 'examen' : saved.mode || 'examen') // 'examen' | 'examen2' | 'examen3' | 'simulacro' | 'practica'
   const [simQs, setSimQs] = useState(saved.simQs || [])
   const [showStats, setShowStats] = useState(false)
   const [pTopic, setPTopic] = useState(0)
@@ -50,7 +56,9 @@ export default function App() {
     }
   }, [answers, mode, submitted, startedAt, usedMs, simQs])
 
-  const questions = mode === 'simulacro' ? simQs : QUESTIONS
+  const questions = mode === 'simulacro' ? simQs : mode === 'examen2' ? QUESTIONS2 : mode === 'examen3' ? QUESTIONS3 : QUESTIONS
+  const sections = mode === 'examen2' ? SECTIONS2 : mode === 'examen3' ? SECTIONS3 : SECTIONS
+  const examMs = minutesFor(mode) * 60 * 1000
   const ref = useRef({})
   ref.current = { answers, questions, mode, startedAt, submitted }
 
@@ -64,7 +72,7 @@ export default function App() {
   const score = questions.reduce((s, q) => s + (isCorrect(q) ? q.pts : 0), 0)
   const showScore = submitted || mode === 'practica'
 
-  const bySection = SECTIONS.map((sec) => {
+  const bySection = sections.map((sec) => {
     const qs = questions.filter((q) => q.sec === sec.id)
     const earned = qs.reduce((s, q) => s + (isCorrect(q) ? q.pts : 0), 0)
     return { ...sec, qs, earned }
@@ -78,7 +86,7 @@ export default function App() {
   const finish = () => {
     const { answers: A, questions: Q, mode: m, startedAt: st, submitted: done } = ref.current
     if (done) return
-    const used = st ? Math.min(Date.now() - st, EXAM_MS) : null
+    const used = st ? Math.min(Date.now() - st, minutesFor(m) * 60 * 1000) : null
     recordAnswers(Q.filter((q) => A[q.id] !== undefined).map((q) => ({ sec: q.sec, ok: A[q.id] === q.answer, src: m })))
     const per = {}
     Q.forEach((q) => { per[q.sec] = (per[q.sec] || 0) + (A[q.id] === q.answer ? q.pts : 0) })
@@ -116,12 +124,12 @@ export default function App() {
     const id = setInterval(() => {
       const t = Date.now()
       setNow(t)
-      if (t - startedAt >= EXAM_MS) finish()
+      if (t - startedAt >= minutesFor(ref.current.mode) * 60 * 1000) finish()
     }, 1000)
     return () => clearInterval(id)
   }, [startedAt, submitted])
 
-  const remaining = startedAt ? EXAM_MS - (now - startedAt) : EXAM_MS
+  const remaining = startedAt ? examMs - (now - startedAt) : examMs
   const timerRunning = startedAt && !submitted
 
   const toggleSol = (id) => setOpenSol((o) => ({ ...o, [id]: !o[id] }))
@@ -133,7 +141,7 @@ export default function App() {
     return (
       <article key={q.id} className="card" id={`q-${q.id}`}>
         <header className="card-head">
-          <span className="qnum">{q.id}</span>
+          <span className="qnum">{q.n || q.id}</span>
           <span className="qpts">{q.pts} {q.pts === 1 ? 'punto' : 'puntos'}</span>
           {reveal && (
             <span className={`badge ${sel === q.answer ? 'good' : 'bad'}`}>
@@ -142,7 +150,7 @@ export default function App() {
           )}
         </header>
         <p className="prompt"><Rich text={q.prompt} /></p>
-        {q.fig && <Figura />}
+        {q.fig === true ? <Figura /> : q.fig && <Figura2 tipo={q.fig} />}
         <div className="options" role="radiogroup">
           {q.options.map((opt, i) => {
             let cls = 'opt'
@@ -200,23 +208,26 @@ export default function App() {
       </div>
 
       <header className="hero">
-        <h1>Examen modelo de ingreso</h1>
+        <h1>{mode === 'examen2' ? 'Examen de ingreso N.º 2' : mode === 'examen3' ? 'Examen de ingreso N.º 3' : 'Examen modelo de ingreso'}</h1>
         <p className="sub">Matemática · {mode === 'practica' ? 'ejercicios generados al azar' : `${questions.length} preguntas · ${TOTAL} puntos · sin calculadora`}</p>
 
         <div className="modes" role="tablist">
-          {[['examen', 'Examen'], ['simulacro', 'Simulacro'], ['practica', 'Práctica']].map(([m, label]) => (
+          {[['examen', 'Examen 1'], ['examen2', 'Examen 2'], ['examen3', 'Examen 3'], ['simulacro', 'Simulacro'], ['practica', 'Práctica']].map(([m, label]) => (
             <button
               key={m} type="button" role="tab" aria-selected={mode === m}
               className={mode === m ? 'on' : ''} disabled={submitted || !!startedAt}
               onClick={() => { setShowStats(false); goMode(m) }}
             >
               {label}
+              {NEW_EXAMS.includes(m) && <span className="tag-new">Nuevo</span>}
             </button>
           ))}
         </div>
         <p className="modehelp">
           {mode === 'examen'
             ? 'El examen modelo fijo. Respondé todo y corregí al final; después ves el desarrollo de cada pregunta.'
+            : mode === 'examen2' || mode === 'examen3'
+              ? 'Examen fijo nuevo, para resolver en 2 horas con papel y lápiz. Marcá cada resultado y corregí al final.'
             : mode === 'simulacro'
               ? 'Un examen NUEVO cada vez: mismo formato y puntaje que el modelo, con números al azar. Se corrige al final.'
               : 'Ejercicios nuevos de cada tipo, con números al azar. Corrige al instante y muestra el desarrollo.'}
@@ -227,7 +238,7 @@ export default function App() {
 
         {mode !== 'practica' && !showStats && !submitted && !startedAt && (
           <button type="button" className="btn ghost start" onClick={() => { setNow(Date.now()); setStartedAt(Date.now()) }}>
-            ⏱ Iniciar cronómetro (90 min)
+            ⏱ Iniciar cronómetro ({minutesFor(mode)} min)
           </button>
         )}
 

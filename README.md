@@ -3,6 +3,8 @@
 App React + Vite (KaTeX para las fórmulas) basada en el examen en PDF de la E.E.S.T. N° 7 Quilmes.
 
 - Examen fijo de 56 preguntas multiple choice, 100 puntos (mismo puntaje por ejercicio que el PDF).
+- Examen 2: segundo examen fijo (27 preguntas, 100 puntos, cronómetro de 120 min) en `src/examData2.js`, con figuras en `src/Figura2.jsx`.
+- Examen 3: tercer examen fijo (27 preguntas, 100 puntos, 120 min) en `src/examData3.js`. La etiqueta «Nuevo» se controla con `NEW_EXAMS` en `src/App.jsx`.
 - Modo examen: se responde todo y se corrige al final (nota sobre 100 + detalle por ejercicio).
 - Modo práctica: ejercicios generados al azar (mismos tipos que el examen, otros números), corrección al instante y botón "Otra parecida". Los generadores están en `src/generators.js`.
 - En ambos modos: "Ver desarrollo paso a paso" de cada pregunta (tras corregir, o cuando quieras en práctica).

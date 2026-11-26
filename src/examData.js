@@ -608,7 +608,7 @@ function seeded(str) {
   }
 }
 
-export const QUESTIONS = RAW.map((q) => {
+export const mix = (list) => list.map((q) => {
   if (q.options.length !== 4) return q // Verdadera/Falsa se deja en su orden
   const rnd = seeded(q.id)
   const idx = [0, 1, 2, 3]
@@ -618,5 +618,7 @@ export const QUESTIONS = RAW.map((q) => {
   }
   return { ...q, options: idx.map((k) => q.options[k]), answer: idx.indexOf(q.answer) }
 })
+
+export const QUESTIONS = mix(RAW)
 
 export const TOTAL = QUESTIONS.reduce((s, q) => s + q.pts, 0)

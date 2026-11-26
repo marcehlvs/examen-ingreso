@@ -3,7 +3,7 @@ import { SECTIONS } from './examData'
 import { getStats, weakSections, clearStats } from './studentStats'
 
 const fmtDate = (t) => new Date(t).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
-const MODE = { examen: 'Examen', simulacro: 'Simulacro' }
+const MODE = { examen: 'Examen 1', examen2: 'Examen 2', examen3: 'Examen 3', simulacro: 'Simulacro' }
 const level = (p) => (p >= 75 ? 'good' : p >= 50 ? 'mid' : 'low')
 
 export default function Stats({ onWeak }) {

@@ -2,7 +2,7 @@
 
 App React + Vite (KaTeX para las fórmulas) con dos secciones:
 
-- **Intensificación** (`#/intensificacion`): recuperación de contenidos adeudados y acreditación de cuatrimestres pendientes. Contenidos en preparación.
+- **Intensificación** (`#/intensificacion`): recuperación de contenidos adeudados y acreditación de cuatrimestres pendientes. Organizada por curso (1.º a 6.º), sección y cuatrimestre: un modelo en modo práctica y dos exámenes. Está cargado 1.º A.
 - **Examen de ingreso** (`#/ingreso`, temporal): tres exámenes de 100 puntos, con corrección al final, desarrollo paso a paso, cronómetro y estadísticas. Las respuestas se guardan solo en el navegador (localStorage).
 
 ## Uso
@@ -14,7 +14,7 @@ npm run build    # genera /dist
 
 ## Estructura
 - `src/sections.js`: lista de secciones (portada y menú).
-- `src/intensificacion/`: sección de intensificación (`data.js` tiene los años y temas).
+- `src/intensificacion/`: sección de intensificación `data/courses.js` define cursos y secciones, `data/1A.js` el contenido y `engine/` la corrección y los gráficos.
 - `src/ingreso/`: todo lo del examen de ingreso. La etiqueta «Nuevo» se controla con `NEW_EXAMS` en `Ingreso.jsx`.
 - `src/shared/Rich.jsx`: fórmulas entre `$...$` (LaTeX). Un signo de pesos va escapado: `\$450`.
 

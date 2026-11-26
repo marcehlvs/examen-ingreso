@@ -14,7 +14,8 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onChange)
   }, [])
 
-  const section = SECTIONS.find((s) => s.path === path)
+  const [root, ...rest] = path.split('/')
+  const section = SECTIONS.find((s) => s.path === root)
   useEffect(() => {
     document.title = `${section ? section.label : 'Inicio'} – Matemática`
   }, [section])
@@ -28,7 +29,7 @@ export default function App() {
         ))}
       </nav>
 
-      {section ? <section.Component /> : <Home />}
+      {section ? <section.Component rest={rest} /> : <Home />}
 
       <p className="credit">
         Creado por el Prof. Juan Marcelo Bejarano

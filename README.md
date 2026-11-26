@@ -1,29 +1,26 @@
-# Examen modelo de ingreso a 2° año 2027 – Matemática
+# Matemática – Intensificación y examen de ingreso
 
-App React + Vite (KaTeX para las fórmulas) basada en el examen en PDF de la E.E.S.T. N° 7 Quilmes.
+App React + Vite (KaTeX para las fórmulas) con dos secciones:
 
-- Examen fijo de 56 preguntas multiple choice, 100 puntos (mismo puntaje por ejercicio que el PDF).
-- Examen 2: segundo examen fijo (27 preguntas, 100 puntos, cronómetro de 120 min) en `src/examData2.js`, con figuras en `src/Figura2.jsx`.
-- Examen 3: tercer examen fijo (27 preguntas, 100 puntos, 120 min) en `src/examData3.js`. La etiqueta «Nuevo» se controla con `NEW_EXAMS` en `src/App.jsx`.
-- Modo examen: se responde todo y se corrige al final (nota sobre 100 + detalle por ejercicio).
-- Modo práctica: ejercicios generados al azar (mismos tipos que el examen, otros números), corrección al instante y botón "Otra parecida". Los generadores están en `src/generators.js`.
-- En ambos modos: "Ver desarrollo paso a paso" de cada pregunta (tras corregir, o cuando quieras en práctica).
-- Modo simulacro: examen NUEVO cada vez (56 preguntas generadas, mismos puntos por ejercicio, 100 en total), con cronómetro y corrección.
-- Mis estadísticas: aciertos por ejercicio (examen + simulacro + práctica), historial de notas y botón "Repasar mis errores" (práctica solo de los ejercicios más flojos).
-- Las respuestas y estadísticas se guardan en el navegador (localStorage); no se envía nada a ningún servidor.
+- **Intensificación** (`#/intensificacion`): recuperación de contenidos adeudados y acreditación de cuatrimestres pendientes. Contenidos en preparación.
+- **Examen de ingreso** (`#/ingreso`, temporal): tres exámenes de 100 puntos, con corrección al final, desarrollo paso a paso, cronómetro y estadísticas. Las respuestas se guardan solo en el navegador (localStorage).
 
 ## Uso
 ```
 npm install
 npm run dev      # desarrollo
-npm run build    # genera /dist (base './', sirve para GitHub Pages)
+npm run build    # genera /dist
 ```
 
-## Dónde editar
-- `src/examData.js`: preguntas, opciones, respuesta correcta y pasos del desarrollo.
-  Las fórmulas van entre `$...$` (LaTeX). Un signo de pesos va escapado: `\$450`.
-- `src/App.jsx`: lógica de modos, puntaje y pantalla de resultados.
-- `src/Figura.jsx`: figura de paralelas del ejercicio 6C.
+## Estructura
+- `src/sections.js`: lista de secciones (portada y menú).
+- `src/intensificacion/`: sección de intensificación (`data.js` tiene los años y temas).
+- `src/ingreso/`: todo lo del examen de ingreso. La etiqueta «Nuevo» se controla con `NEW_EXAMS` en `Ingreso.jsx`.
+- `src/shared/Rich.jsx`: fórmulas entre `$...$` (LaTeX). Un signo de pesos va escapado: `\$450`.
+
+## Quitar el examen de ingreso
+1. En `src/sections.js`, borrar `import Ingreso ...` y su bloque en `SECTIONS`.
+2. Borrar la carpeta `src/ingreso/`.
 
 ## Deploy en GitHub Pages
 1. Crear un repo (por ejemplo `examen-ingreso-2do-2027`) y subir todo el contenido de esta carpeta a la rama `main`

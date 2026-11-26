@@ -10,10 +10,10 @@ export const calc = (id, expr, answer, steps) => item(id, `$${expr}$`, [num(answ
 export const angleCalc = (id, prompt, a, steps) => item(id, prompt, [angle(...a)], steps)
 
 export const factorItem = (id, numbers, mcm, dcm, steps) =>
-  item(id, `Factorizá ${numbers.join(', ')} y calculá el mcm y el DCM.`, [
+  item(id, `Factorizá ${numbers.join(', ')} y calculá el M.C.M. y el D.C.M.`, [
     ...numbers.map((n) => ({ kind: 'factor', label: `${n} =`, aria: `${n} =`, answer: n })),
-    num(mcm, { label: 'mcm', aria: 'mcm =' }),
-    num(dcm, { label: 'DCM', aria: 'DCM =' }),
+    num(mcm, { label: 'M.C.M.', aria: 'M.C.M. =' }),
+    num(dcm, { label: 'D.C.M.', aria: 'D.C.M. =' }),
   ], steps)
 
 const dec = (x) => String(Math.round(x * 10000) / 10000).replace('.', ',')

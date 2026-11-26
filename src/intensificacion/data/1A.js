@@ -11,8 +11,8 @@ const props = (a, b) => ({
   items: [calc('1a', ...a), calc('1b', ...b)],
 })
 const factors = (a, b) => ({
-  n: 2, title: 'mcm y DCM',
-  statement: 'Calculá el mínimo común múltiplo (mcm) y el divisor común mayor (DCM), factorizando previamente.',
+  n: 2, title: 'M.C.M. y D.C.M.',
+  statement: 'Calculá el mínimo común múltiplo (M.C.M.) y el divisor común mayor (D.C.M.), factorizando previamente.',
   items: [factorItem('2a', ...a), factorItem('2b', ...b)],
 })
 const rationals = (a, b) => ({
@@ -54,10 +54,10 @@ const c1Modelo = [
   ),
   factors(
     [[9, 36, 72], 72, 9, [r`$9 = 3^2$ ; $36 = 2^2 \cdot 3^2$ ; $72 = 2^3 \cdot 3^2$.`,
-      r`mcm: factores comunes y no comunes con el mayor exponente: $2^3 \cdot 3^2 = 72$.`,
-      r`DCM: factores comunes con el menor exponente: $3^2 = 9$.`]],
+      r`M.C.M.: factores comunes y no comunes con el mayor exponente: $2^3 \cdot 3^2 = 72$.`,
+      r`D.C.M.: factores comunes con el menor exponente: $3^2 = 9$.`]],
     [[24, 30, 56], 840, 2, [r`$24 = 2^3 \cdot 3$ ; $30 = 2 \cdot 3 \cdot 5$ ; $56 = 2^3 \cdot 7$.`,
-      r`mcm $= 2^3 \cdot 3 \cdot 5 \cdot 7 = 840$.`, r`DCM $= 2$ (el único factor común a los tres).`]],
+      r`M.C.M. $= 2^3 \cdot 3 \cdot 5 \cdot 7 = 840$.`, r`D.C.M. $= 2$ (el único factor común a los tres).`]],
   ),
   rationals(
     [r`\frac{3}{4} : \frac{9}{16} + \sqrt{\frac{1}{4}} - \frac{5}{6}`, 1, [
@@ -70,8 +70,8 @@ const c1Modelo = [
   ),
   share('Camila preparó 324 galletitas y 300 bombones para repartir en su cumpleaños y los quiere poner en bolsas que tengan la misma cantidad de cada tipo. ¿Cuántas bolsas se pueden armar como máximo? ¿Qué cantidad de galletitas y bombones tendrá cada bolsa?',
     ['Cantidad máxima de bolsas', 'Galletitas por bolsa', 'Bombones por bolsa'], [12, 27, 25], [
-      'Como se busca la mayor cantidad de bolsas iguales, se calcula el DCM.',
-      r`$324 = 2^2 \cdot 3^4$ y $300 = 2^2 \cdot 3 \cdot 5^2$. DCM $= 2^2 \cdot 3 = 12$.`,
+      'Como se busca la mayor cantidad de bolsas iguales, se calcula el D.C.M.',
+      r`$324 = 2^2 \cdot 3^4$ y $300 = 2^2 \cdot 3 \cdot 5^2$. D.C.M. $= 2^2 \cdot 3 = 12$.`,
       r`Galletitas: $324 : 12 = 27$. Bombones: $300 : 12 = 25$.`]),
 ]
 
@@ -84,9 +84,9 @@ const c1Ex1 = [
   ),
   factors(
     [[12, 18, 60], 180, 6, [r`$12 = 2^2 \cdot 3$ ; $18 = 2 \cdot 3^2$ ; $60 = 2^2 \cdot 3 \cdot 5$.`,
-      r`mcm $= 2^2 \cdot 3^2 \cdot 5 = 180$.`, r`DCM $= 2 \cdot 3 = 6$.`]],
+      r`M.C.M. $= 2^2 \cdot 3^2 \cdot 5 = 180$.`, r`D.C.M. $= 2 \cdot 3 = 6$.`]],
     [[28, 42, 70], 420, 14, [r`$28 = 2^2 \cdot 7$ ; $42 = 2 \cdot 3 \cdot 7$ ; $70 = 2 \cdot 5 \cdot 7$.`,
-      r`mcm $= 2^2 \cdot 3 \cdot 5 \cdot 7 = 420$.`, r`DCM $= 2 \cdot 7 = 14$.`]],
+      r`M.C.M. $= 2^2 \cdot 3 \cdot 5 \cdot 7 = 420$.`, r`D.C.M. $= 2 \cdot 7 = 14$.`]],
   ),
   rationals(
     [r`\frac{2}{5} : \frac{4}{15} + \sqrt{\frac{4}{9}} - \frac{7}{6}`, 1, [
@@ -98,7 +98,7 @@ const c1Ex1 = [
   ),
   share('Bruno tiene 168 alfajores y 180 caramelos para repartir en bolsas que tengan la misma cantidad de cada tipo, sin que sobre nada. ¿Cuántas bolsas puede armar como máximo? ¿Cuántos alfajores y caramelos tendrá cada bolsa?',
     ['Cantidad máxima de bolsas', 'Alfajores por bolsa', 'Caramelos por bolsa'], [12, 14, 15], [
-      r`$168 = 2^3 \cdot 3 \cdot 7$ y $180 = 2^2 \cdot 3^2 \cdot 5$.`, r`DCM $= 2^2 \cdot 3 = 12$ bolsas.`,
+      r`$168 = 2^3 \cdot 3 \cdot 7$ y $180 = 2^2 \cdot 3^2 \cdot 5$.`, r`D.C.M. $= 2^2 \cdot 3 = 12$ bolsas.`,
       r`$168 : 12 = 14$ alfajores y $180 : 12 = 15$ caramelos.`]),
 ]
 
@@ -111,9 +111,9 @@ const c1Ex2 = [
   ),
   factors(
     [[15, 45, 90], 90, 15, [r`$15 = 3 \cdot 5$ ; $45 = 3^2 \cdot 5$ ; $90 = 2 \cdot 3^2 \cdot 5$.`,
-      r`mcm $= 2 \cdot 3^2 \cdot 5 = 90$.`, r`DCM $= 3 \cdot 5 = 15$.`]],
+      r`M.C.M. $= 2 \cdot 3^2 \cdot 5 = 90$.`, r`D.C.M. $= 3 \cdot 5 = 15$.`]],
     [[36, 48, 60], 720, 12, [r`$36 = 2^2 \cdot 3^2$ ; $48 = 2^4 \cdot 3$ ; $60 = 2^2 \cdot 3 \cdot 5$.`,
-      r`mcm $= 2^4 \cdot 3^2 \cdot 5 = 720$.`, r`DCM $= 2^2 \cdot 3 = 12$.`]],
+      r`M.C.M. $= 2^4 \cdot 3^2 \cdot 5 = 720$.`, r`D.C.M. $= 2^2 \cdot 3 = 12$.`]],
   ),
   rationals(
     [r`\frac{5}{6} : \frac{10}{9} + \sqrt{\frac{9}{16}} - \frac{1}{4}`, '5/4', [
@@ -125,7 +125,7 @@ const c1Ex2 = [
   ),
   share('En una florería hay 144 rosas y 120 claveles. Quieren armar ramos iguales usando todas las flores. ¿Cuántos ramos se pueden armar como máximo? ¿Cuántas rosas y claveles tendrá cada uno?',
     ['Cantidad máxima de ramos', 'Rosas por ramo', 'Claveles por ramo'], [24, 6, 5], [
-      r`$144 = 2^4 \cdot 3^2$ y $120 = 2^3 \cdot 3 \cdot 5$.`, r`DCM $= 2^3 \cdot 3 = 24$ ramos.`,
+      r`$144 = 2^4 \cdot 3^2$ y $120 = 2^3 \cdot 3 \cdot 5$.`, r`D.C.M. $= 2^3 \cdot 3 = 24$ ramos.`,
       r`$144 : 24 = 6$ rosas y $120 : 24 = 5$ claveles.`]),
 ]
 
@@ -204,7 +204,7 @@ const set = (cuatri, modelo, ex1, ex2) => [
 
 export const SECTION_1A = {
   terms: [
-    { id: '1', title: '1.er cuatrimestre', topics: 'Potenciación y radicación · mcm y DCM · Racionales · Problemas', activities: set('c1', c1Modelo, c1Ex1, c1Ex2) },
+    { id: '1', title: '1.er cuatrimestre', topics: 'Potenciación y radicación · M.C.M. y D.C.M. · Racionales · Problemas', activities: set('c1', c1Modelo, c1Ex1, c1Ex2) },
     { id: '2', title: '2.º cuatrimestre', topics: 'Decimales · Porcentaje · Proporcionalidad · Ángulos · Estadística', activities: set('c2', c2Modelo, c2Ex1, c2Ex2) },
   ],
 }

@@ -34,7 +34,7 @@ export default function Intensificacion({ rest = [] }) {
       <>
         <Crumbs trail={[['Cursos', BASE], [`${course.title} ${sectionId}`, back], [`${term.title}: ${activity.title}`]]} />
         <Header title={activity.title} sub={`${course.title} «${sectionId}» · ${term.title} · ${activity.mode === 'examen' ? 'se corrige al final' : 'corrige ítem por ítem'}`} />
-        <Activity key={activity.id} activity={activity} />
+        <Activity key={activity.id} activity={activity} course={`${course.title} «${sectionId}»`} term={term.title} />
         <p className="backlink"><a href={back}>← Volver a {course.title} «{sectionId}»</a></p>
       </>
     )

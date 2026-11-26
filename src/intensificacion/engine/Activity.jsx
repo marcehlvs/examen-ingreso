@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Rich from '../../shared/Rich'
 import { XYChart, PieChart } from './Charts'
+import Printable from './Printable'
 import { fieldsOf, isFieldOk, isFilled, isItemOk, show } from './check'
 
 const load = (key) => {
@@ -38,7 +39,6 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
       <span className="inrow">
         {field.prefix && <b>{field.prefix}</b>}
         <input className={cls} type="text" value={value || ''} disabled={disabled} aria-label={name} autoComplete="off" autoCapitalize="off"
-          placeholder={field.kind === 'factor' ? 'Ej.: 2x2x5' : ''}
           onChange={(e) => onChange(e.target.value)} />
         {field.kind === 'factor' && !disabled && ['×', '^'].map((s) => (
           <button key={s} type="button" className="key" aria-label={s === '×' ? 'Agregar por' : 'Agregar exponente'} onClick={() => onChange((value || '') + s)}>{s}</button>
@@ -51,7 +51,7 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
 }
 
 // mode 'practica': cada ítem se comprueba por separado. mode 'examen': se corrige todo al final.
-export default function Activity({ activity }) {
+export default function Activity({ activity, course, term }) {
   const storageKey = `intensificacion:v1:${activity.id}`
   const [state, setState] = useState(() => ({ values: {}, checked: {}, submitted: false, ...load(storageKey) }))
   const [open, setOpen] = useState({})
@@ -82,6 +82,15 @@ export default function Activity({ activity }) {
     setAsk(null)
     window.scrollTo(0, 0)
   }
+
+  // El navegador usa el título de la página como nombre sugerido del PDF.
+  const download = () => {
+    const previous = document.title
+    document.title = `${course} - ${term} - ${activity.title}`.replace(/[:«»]/g, '')
+    window.addEventListener('afterprint', () => { document.title = previous }, { once: true })
+    window.print()
+  }
+  const pdfButton = <button type="button" className="btn ghost" onClick={download}>⬇ Descargar PDF</button>
 
   const renderItem = (item) => {
     const reveal = exam ? submitted : !!checked[item.id]
@@ -153,6 +162,12 @@ export default function Activity({ activity }) {
 
   return (
     <>
+      <div className="pdfbar">
+        {pdfButton}
+        <p>Hoja para resolver en papel. En la ventana que se abre, elegí «Guardar como PDF».</p>
+      </div>
+      <Printable activity={activity} course={course} term={term} />
+
       {exam && submitted && (
         <section className="result">
           <h2>Resultado</h2>
@@ -180,6 +195,7 @@ export default function Activity({ activity }) {
           <button type="button" className="btn" onClick={() => (pending ? setAsk('submit') : submit())}>Corregir examen</button>
         )}
         <button type="button" className="btn ghost" onClick={() => setAsk('reset')}>Empezar de nuevo</button>
+        {pdfButton}
       </div>
 
       {ask && (

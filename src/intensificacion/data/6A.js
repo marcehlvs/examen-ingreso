@@ -193,7 +193,7 @@ const asym = ([a, b]) => ({
 
 const derivatives = ({ a, b, c, d, e, tg }) => ({
   n: 5, title: 'Derivadas',
-  statement: 'Derivá cada función. Escribí las potencias con ^ y usá paréntesis: por ejemplo 3(x^2-1)^4, e^(2x), sen(x), ln(x), sqrt(x). No hace falta simplificar.',
+  statement: 'Derivá cada función. No hace falta simplificar. Para escribir raíces, potencias y funciones usá los botones de abajo de cada casillero. Después mirá «Se lee así» para controlar que sea tu respuesta.',
   items: [
     derivItem('5a', ...a), derivItem('5b', ...b), derivItem('5c', ...c), withPoints(derivItem('5d', ...d), SMALL), derivItem('5e', ...e), tangentItem('5f', ...tg),
   ],

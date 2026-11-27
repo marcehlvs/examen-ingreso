@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Rich from '../../shared/Rich'
 import Dialog from '../../shared/Dialog'
 import Notice from '../../shared/Notice'
@@ -7,6 +7,7 @@ import { XYChart, PieChart } from './Charts'
 import { FunctionGraph, Sketches } from './Graphs'
 import { Plane, TriangleFigure, NumberLine, Trapezoid } from './Geometry'
 import Printable from './Printable'
+import { toTex } from './expr'
 import { fieldsOf, isFieldOk, isFilled, isItemOk, linesOk, countedItems, isSkipped, show } from './check'
 
 const row0 = (item) => item.table.rows[0].length
@@ -15,7 +16,45 @@ const load = (key) => {
   try { return JSON.parse(localStorage.getItem(key)) || {} } catch { return {} }
 }
 
+// Teclado de fórmulas: cada botón muestra el símbolo como en la carpeta e inserta lo que entiende el corrector.
+const EXPR_KEYS = [
+  { show: 'x', insert: 'x', name: 'x' },
+  { show: '√', insert: '√(', name: 'raíz cuadrada' },
+  { show: 'x²', insert: '²', name: 'al cuadrado' },
+  { show: 'xⁿ', insert: '^(', name: 'otra potencia' },
+  { show: 'a/b', insert: '/', name: 'dividido' },
+  { show: '(', insert: '(', name: 'abrir paréntesis' },
+  { show: ')', insert: ')', name: 'cerrar paréntesis' },
+  { show: 'eˣ', insert: 'e^(', name: 'e elevado a' },
+  { show: 'ln', insert: 'ln(', name: 'logaritmo natural' },
+  { show: 'sen', insert: 'sen(', name: 'seno' },
+  { show: 'cos', insert: 'cos(', name: 'coseno' },
+  { show: 'tan', insert: 'tan(', name: 'tangente' },
+]
+
+// Muestra la respuesta como se escribe en papel, para que el alumno controle que sea la que quiso poner.
+function Preview({ field, value }) {
+  if (!String(value || '').trim()) return null
+  const tex = toTex(value, { antiderivative: field.antiderivative })
+  return (
+    <span className="preview" aria-live="polite">
+      {tex
+        ? <><span>Se lee así:</span><Rich text={`$${tex}$`} /></>
+        : <span>Todavía está incompleto: revisá qué falta escribir.</span>}
+    </span>
+  )
+}
+
 function Field({ field, value, onChange, disabled, mark, compact }) {
+  const input = useRef(null)
+  // Inserta donde está el cursor (o reemplaza lo seleccionado).
+  const insert = (text) => {
+    const el = input.current, now = String(value || '')
+    const from = el?.selectionStart ?? now.length, to = el?.selectionEnd ?? now.length
+    onChange(now.slice(0, from) + text + now.slice(to))
+    requestAnimationFrame(() => { el?.focus(); el?.setSelectionRange(from + text.length, from + text.length) })
+  }
+
   const cls = mark === undefined ? '' : mark ? 'ok' : 'no'
   const label = field.label && <span><Rich text={field.label} /></span>
   const name = field.aria || field.label || 'Respuesta'
@@ -43,11 +82,11 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
     )
   } else {
     // Teclas de ayuda para los símbolos difíciles de escribir en el celular.
-    const keys = { factor: ['×', '^'], poly: [field.v || 'x', '^', '+', '−'], conj: ['(', ')', field.v, '^', '+', '−', '/'], set: ['−', '/', '∅'], numset: ['−', '/', ';', '∅'], expr: ['x', '^', '(', ')', '/'], limit: ['+∞', '−∞', '−', '/', 'no existe'] }[field.kind] || []
+    const keys = { factor: ['×', '^'], poly: [field.v || 'x', '^', '+', '−'], conj: ['(', ')', field.v, '^', '+', '−', '/'], set: ['−', '/', '∅'], numset: ['−', '/', ';', '∅'], expr: EXPR_KEYS, limit: ['+∞', '−∞', '−', '/', 'no existe'] }[field.kind] || []
     control = (
       <span className="inrow">
         {field.prefix && <b>{field.prefix}</b>}
-        <input className={cls} type="text" value={value || ''} disabled={disabled} aria-label={name} autoComplete="off" autoCapitalize="off"
+        <input ref={input} className={cls} type="text" value={value || ''} disabled={disabled} aria-label={name} autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck={false}
           onChange={(e) => onChange(e.target.value)} />
         {field.suffix && <b>{field.suffix}</b>}
       </span>
@@ -57,15 +96,26 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
         <span className="withkeys">
           {control}
           <span className="keys">
-            {keys.map((s) => (
-              <button key={s} type="button" className="key" aria-label={`Agregar ${s}`}
-                onClick={(e) => { e.preventDefault(); onChange(s === '∅' || s === 'no existe' ? s : String(value || '').replace('∅', '').replace('no existe', '') + s) }}>{s}</button>
-            ))}
+            {keys.map((k) => {
+              const key = typeof k === 'string' ? { show: k, insert: k, name: k } : k
+              const whole = key.insert === '∅' || key.insert === 'no existe'
+              return (
+                <button key={key.show} type="button" className="key" aria-label={`Agregar ${key.name}`} title={key.name}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    if (whole) onChange(key.insert)
+                    else if (field.kind === 'expr') insert(key.insert)
+                    else onChange(String(value || '').replace('∅', '').replace('no existe', '') + key.insert)
+                  }}>{key.show}</button>
+              )
+            })}
           </span>
         </span>
       )
     }
   }
+  if (field.kind === 'expr') control = <>{control}<Preview field={field} value={value} /></>
   if (compact) return control
   const Tag = ['factor', 'poly', 'set', 'numset', 'conj', 'expr', 'limit'].includes(field.kind) ? 'div' : 'label'
   return <Tag className="field">{label}{control}</Tag>

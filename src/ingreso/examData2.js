@@ -85,13 +85,13 @@ const RAW = [
       r`Verifico: ambos miembros dan $\frac{16}{77}$. ✓`,
     ]),
 
-  q('5a', 5, 5, 'De un depósito lleno de agua se usan las dos quintas partes para regar. Después, se usan las tres cuartas partes de lo que quedaba para lavar, y todavía sobran 150 litros. ¿Cuántos litros tiene el depósito lleno?',
+  q('5a', 5, 6, 'De un depósito lleno de agua se usan las dos quintas partes para regar. Después, se usan las tres cuartas partes de lo que quedaba para lavar, y todavía sobran 150 litros. ¿Cuántos litros tiene el depósito lleno?',
     ['1000 litros', '600 litros', '375 litros', '1500 litros'], 0, [
       r`Después de regar quedan $\frac{3}{5}$ del total.`,
       r`Sobra $\frac{1}{4}$ de ese resto: $\frac{1}{4} \cdot \frac{3}{5} = \frac{3}{20}$ del total.`,
       r`$\frac{3}{20}x = 150$, entonces $x = 150 \cdot 20 : 3 = 1000$ litros.`,
     ]),
-  q('5b', 5, 3, 'En el mismo depósito del ejercicio 5a, ¿cuántos litros se usaron para regar y cuántos para lavar?',
+  q('5b', 5, 2, 'En el mismo depósito del ejercicio 5a, ¿cuántos litros se usaron para regar y cuántos para lavar?',
     ['400 L para regar y 450 L para lavar', '400 L para regar y 750 L para lavar', '600 L para regar y 250 L para lavar', '450 L para regar y 400 L para lavar'], 0, [
       r`Para regar: $\frac{2}{5} \cdot 1000 = 400$ L. Quedan $600$ L.`,
       r`Para lavar: $\frac{3}{4} \cdot 600 = 450$ L.`,
@@ -137,14 +137,14 @@ const RAW = [
       r`$40 = 2x$, entonces $x = 20°$ y $\hat{\delta} = \hat{\alpha} = 88°$.`,
       r`$\hat{\varepsilon}$ es adyacente a $\hat{\alpha}$: $180° - 88° = 92°$.`,
     ], 'delta'),
-  q('6f', 6, 4, r`Resolvé: $(38°\,45' \cdot 4 - 72°\,30'\,20'') : 5$`,
+  q('6f', 6, 5, r`Resolvé: $(38°\,45' \cdot 4 - 72°\,30'\,20'') : 5$`,
     [r`$16°\,29'\,56''$`, r`$16°\,29'\,16''$`, r`$17°\,5'\,56''$`, r`$45°\,30'\,4''$`], 0, [
       r`$38°\,45' \cdot 4 = 152°\,180' = 155°$.`,
       r`$155° - 72°\,30'\,20'' = 82°\,29'\,40''$.`,
       r`Divido por 5: $82° : 5 = 16°$ y sobran $2° = 120'$.`,
       r`$149' : 5 = 29'$ y sobran $4' = 240''$. Por último, $280'' : 5 = 56''$.`,
     ]),
-  q('6g', 6, 4, r`Hallá la amplitud del ángulo rojo $\hat{\beta}$. Los tres ángulos de la figura forman un ángulo llano.`,
+  q('6g', 6, 3, r`Hallá la amplitud del ángulo rojo $\hat{\beta}$. Los tres ángulos de la figura forman un ángulo llano.`,
     [r`$64°\,42'\,37''$`, r`$65°\,43'\,37''$`, r`$64°\,42'\,23''$`, r`$115°\,17'\,23''$`], 0, [
       r`Sumo los datos: $41°\,27'\,38'' + 73°\,49'\,45'' = 115°\,17'\,23''$.`,
       r`$\hat{\beta} = 179°\,59'\,60'' - 115°\,17'\,23'' = 64°\,42'\,37''$.`,
@@ -160,7 +160,7 @@ const RAW = [
       r`$3$ y $6$ son conjugados internos; $1$ y $5$, correspondientes; $1$ y $7$, alternos externos.`,
     ], true),
 
-  q('7a', 7, 5, 'Una antena proyecta una sombra de 24 m. La distancia entre la punta de la antena y el extremo de la sombra es de 74 m. Usando el teorema de Pitágoras, ¿cuál es la altura de la antena?',
+  q('7a', 7, 4, 'Una antena proyecta una sombra de 24 m. La distancia entre la punta de la antena y el extremo de la sombra es de 74 m. Usando el teorema de Pitágoras, ¿cuál es la altura de la antena?',
     ['70 m', '50 m', '98 m', '78 m'], 0, [
       r`La distancia de 74 m es la hipotenusa: $h^2 = 74^2 - 24^2$.`,
       r`$h^2 = 5476 - 576 = 4900$, entonces $h = 70$ m.`,
@@ -172,13 +172,13 @@ const RAW = [
       r`$\hat{O} = 70°$ y $\hat{M} = \hat{R} = 55°$.`,
       r`$\hat{\alpha} = 180° - 70° = 110°$.`,
     ], 'triangulo'),
-  q('7c', 7, 2, r`En el trapecio rectángulo de la figura, la base mayor mide $1{,}4$ dm, la base menor 90 mm y la altura $0{,}12$ m. ¿Cuánto mide el lado oblicuo $\overline{PQ}$?`,
+  q('7c', 7, 4, r`En el trapecio rectángulo de la figura, la base mayor mide $1{,}4$ dm, la base menor 90 mm y la altura $0{,}12$ m. ¿Cuánto mide el lado oblicuo $\overline{PQ}$?`,
     ['13 cm', '17 cm', '12,5 cm', '11 cm'], 0, [
       r`Paso todo a cm: $1{,}4$ dm $= 14$ cm; 90 mm $= 9$ cm; $0{,}12$ m $= 12$ cm.`,
       r`Se forma un triángulo rectángulo de catetos $12$ y $14 - 9 = 5$ cm.`,
       r`$\overline{PQ} = \sqrt{12^2 + 5^2} = \sqrt{169} = 13$ cm.`,
     ], 'trapecio'),
-  q('7d', 7, 3, 'Calculá el perímetro y el área del trapecio del ejercicio 7c.',
+  q('7d', 7, 2, 'Calculá el perímetro y el área del trapecio del ejercicio 7c.',
     [r`Perímetro: 48 cm; área: 138 cm²`, r`Perímetro: 48 cm; área: 276 cm²`, r`Perímetro: 47 cm; área: 138 cm²`, r`Perímetro: 48 cm; área: 168 cm²`], 0, [
       r`Perímetro: $14 + 13 + 9 + 12 = 48$ cm.`,
       r`Área: $\frac{(14 + 9) \cdot 12}{2} = 138$ cm².`,

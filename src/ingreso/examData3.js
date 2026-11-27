@@ -78,13 +78,13 @@ const RAW = [
       r`$x = \frac{3}{4} : \frac{4}{3} = \frac{9}{16}$.`,
       r`Verifico: ambos miembros dan $\frac{9}{40}$. ✓`,
     ]),
-  q('5a', 5, 5, 'De un rollo de cable se usa la tercera parte en una obra. Después, se usan las tres quintas partes de lo que quedaba en otra, y todavía sobran 80 metros. ¿Cuántos metros tenía el rollo?',
+  q('5a', 5, 6, 'De un rollo de cable se usa la tercera parte en una obra. Después, se usan las tres quintas partes de lo que quedaba en otra, y todavía sobran 80 metros. ¿Cuántos metros tenía el rollo?',
     ['300 metros', '200 metros', '133 metros', '1200 metros'], 0, [
       r`Después de la primera obra quedan $\frac{2}{3}$.`,
       r`Sobran $\frac{2}{5}$ de ese resto: $\frac{2}{5} \cdot \frac{2}{3} = \frac{4}{15}$.`,
       r`$\frac{4}{15}x = 80$, entonces $x = 300$ m.`,
     ]),
-  q('5b', 5, 3, 'Con el rollo del ejercicio 5a, ¿cuántos metros se usaron en cada obra?',
+  q('5b', 5, 2, 'Con el rollo del ejercicio 5a, ¿cuántos metros se usaron en cada obra?',
     ['100 m en la primera y 120 m en la segunda', '100 m en la primera y 180 m en la segunda', '200 m en la primera y 20 m en la segunda', '120 m en la primera y 100 m en la segunda'], 0, [
       r`Primera obra: $300 : 3 = 100$ m. Quedan $200$ m.`,
       r`Segunda obra: $\frac{3}{5} \cdot 200 = 120$ m.`,
@@ -127,14 +127,14 @@ const RAW = [
       r`$8x + 20 = 180$, entonces $x = 20°$.`,
       r`$\hat{\delta} = \hat{\alpha} = 75°$ y $\hat{\varepsilon} = 105°$.`,
     ], 'delta'),
-  q('6f', 6, 4, r`Resolvé: $(47°\,38' \cdot 3 - 68°\,25'\,32'') : 4$`,
+  q('6f', 6, 5, r`Resolvé: $(47°\,38' \cdot 3 - 68°\,25'\,32'') : 4$`,
     [r`$18°\,37'\,7''$`, r`$18°\,7'\,7''$`, r`$19°\,7'\,7''$`, r`$52°\,49'\,23''$`], 0, [
       r`$47°\,38' \cdot 3 = 141°\,114' = 142°\,54'$.`,
       r`$142°\,54' - 68°\,25'\,32'' = 74°\,28'\,28''$.`,
       r`$74° : 4 = 18°$ y sobran $2° = 120'$.`,
       r`$148' : 4 = 37'$ y $28'' : 4 = 7''$.`,
     ]),
-  q('6g', 6, 4, r`Hallá la amplitud del ángulo rojo $\hat{\beta}$. Los tres ángulos de la figura forman un ángulo llano.`,
+  q('6g', 6, 3, r`Hallá la amplitud del ángulo rojo $\hat{\beta}$. Los tres ángulos de la figura forman un ángulo llano.`,
     [r`$62°\,35'\,37''$`, r`$63°\,36'\,37''$`, r`$62°\,35'\,23''$`, r`$117°\,24'\,23''$`], 0, [
       r`$52°\,36'\,48'' + 64°\,47'\,35'' = 117°\,24'\,23''$.`,
       r`$\hat{\beta} = 179°\,59'\,60'' - 117°\,24'\,23'' = 62°\,35'\,37''$.`,
@@ -149,7 +149,7 @@ const RAW = [
       r`Los alternos externos están fuera de las paralelas y en distinto lado de la transversal: $2$ y $8$.`,
       r`$2$ y $7$ son conjugados externos; $2$ y $6$, correspondientes; $3$ y $5$, alternos internos.`,
     ], true),
-  q('7a', 7, 5, 'Un cable tensor de 52 m va desde la punta de un poste vertical hasta el suelo, a 20 m de la base. Usando el teorema de Pitágoras, ¿cuál es la altura del poste?',
+  q('7a', 7, 4, 'Un cable tensor de 52 m va desde la punta de un poste vertical hasta el suelo, a 20 m de la base. Usando el teorema de Pitágoras, ¿cuál es la altura del poste?',
     ['48 m', '32 m', '72 m', '56 m'], 0, [
       r`El cable es la hipotenusa: $h^2 = 52^2 - 20^2$.`,
       r`$h^2 = 2704 - 400 = 2304$, entonces $h = 48$ m.`,
@@ -160,12 +160,12 @@ const RAW = [
       r`$3x + 4 + 2 \cdot (2x + 4) = 180$, entonces $7x + 12 = 180$ y $x = 24°$.`,
       r`$\hat{O} = 76°$, $\hat{M} = \hat{R} = 52°$ y $\hat{\alpha} = 180° - 76° = 104°$.`,
     ], 'triangulo'),
-  q('7c', 7, 2, r`En el trapecio rectángulo de la figura, la base mayor mide $0{,}19$ m, la base menor $1{,}1$ dm y la altura 150 mm. ¿Cuánto mide el lado oblicuo $\overline{PQ}$?`,
+  q('7c', 7, 4, r`En el trapecio rectángulo de la figura, la base mayor mide $0{,}19$ m, la base menor $1{,}1$ dm y la altura 150 mm. ¿Cuánto mide el lado oblicuo $\overline{PQ}$?`,
     ['17 cm', '23 cm', '15,5 cm', '13 cm'], 0, [
       r`En cm: base mayor $19$, base menor $11$ y altura $15$.`,
       r`Catetos: $15$ y $19 - 11 = 8$. $\overline{PQ} = \sqrt{15^2 + 8^2} = \sqrt{289} = 17$ cm.`,
     ], 'trapecio3'),
-  q('7d', 7, 3, 'Calculá el perímetro y el área del trapecio del ejercicio 7c.',
+  q('7d', 7, 2, 'Calculá el perímetro y el área del trapecio del ejercicio 7c.',
     [r`Perímetro: 62 cm; área: 225 cm²`, r`Perímetro: 62 cm; área: 450 cm²`, r`Perímetro: 60 cm; área: 225 cm²`, r`Perímetro: 62 cm; área: 285 cm²`], 0, [
       r`Perímetro: $19 + 17 + 11 + 15 = 62$ cm.`,
       r`Área: $\frac{(19 + 11) \cdot 15}{2} = 225$ cm².`,

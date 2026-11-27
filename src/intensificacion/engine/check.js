@@ -186,7 +186,7 @@ export function isSkipped(exercise, item, values) {
 
 export const show = (field) => {
   const es = (v) => String(v).replace('.', ',')
-  if (field.kind === 'expr') return field.display || field.answer.replace(/\^(\d)/g, (_, d) => SUP[d]).replace(/\*/g, '·')
+  if (field.kind === 'expr') return field.display || field.answer.replace(/sqrt/g, '√').replace(/\^(\d)(?!\d)/g, (_, d) => SUP[d]).replace(/\*/g, '·')
   if (field.kind === 'limit') return field.display || (field.answer === 'inf' ? '+∞' : field.answer === '-inf' ? '−∞' : field.answer === 'dne' ? 'no existe' : field.tol ? `≈ ${es(field.answer)}` : es(field.answer).replace('-', '−'))
   if (field.kind === 'numset') return field.answer === '∅' ? '∅' : `{${field.answer.map(es).join(' ; ')}}`
   if (field.kind === 'sketch') return `gráfico ${field.answer}`

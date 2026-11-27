@@ -1,4 +1,5 @@
 // Armadores de ítems. Cada casillero recibe una clave única dentro de la actividad (id del ítem + sufijo).
+import { toExam } from './exam'
 export const num = (answer, extra = {}) => ({ kind: 'num', answer: String(answer), ...extra })
 export const sel = (label, options, answer) => ({ kind: 'select', label, options, answer })
 export const angle = (d, m, s) => ({ kind: 'angle', answer: [d, m, s], aria: '' })
@@ -112,4 +113,7 @@ export const activitySet = (prefix, year, modelo, ex1, ex2) => [
   { slug: 'practica', mode: 'practica', title: `Práctica: modelo ${year}`, description: 'El modelo de la intensificación. Comprobá cada ítem y mirá el desarrollo paso a paso.', exercises: modelo },
   { slug: 'examen-1', mode: 'examen', title: 'Examen 1', description: 'Se corrige todo al final.', exercises: ex1 },
   { slug: 'examen-2', mode: 'examen', title: 'Examen 2', description: 'Se corrige todo al final.', exercises: ex2 },
-].map((a) => ({ ...a, id: `${prefix}-${a.slug}` }))
+].map((a) => (a.mode === 'examen'
+  ? { ...a, exercises: toExam(a.exercises, prefix) }
+  // La práctica se ve con la guía en pantalla, pero su hoja en PDF va sin ayudas.
+  : { ...a, sheet: toExam(a.exercises, prefix) })).map((a) => ({ ...a, id: `${prefix}-${a.slug}` }))

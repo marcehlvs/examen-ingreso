@@ -32,6 +32,8 @@ const EXPR_KEYS = [
   { show: 'tan', insert: 'tan(', name: 'tangente' },
 ]
 
+const INSERT_AT_CURSOR = ['expr', 'exprset', 'pair', 'complex', 'surd', 'surdfrac', 'interval']
+
 // Muestra la respuesta como se escribe en papel, para que el alumno controle que sea la que quiso poner.
 function Preview({ field, value }) {
   if (!String(value || '').trim()) return null
@@ -59,7 +61,17 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
   const label = field.label && <span><Rich text={field.label} /></span>
   const name = field.aria || field.label || 'Respuesta'
   let control
-  if (field.kind === 'select') {
+  if (field.kind === 'polar' || field.kind === 'sci') {
+    const v = value || ['', '']
+    const box = (i, aria, place = '') => (
+      <input className={`${cls} short ${place}`} type="text" disabled={disabled} value={v[i] || ''} aria-label={`${name} ${aria}`} autoComplete="off"
+        onChange={(e) => { const n = [...v]; n[i] = e.target.value; onChange(n) }} />
+    )
+    // Se ve como en la carpeta: r con el argumento de subíndice; en notación científica, el exponente arriba.
+    control = field.kind === 'polar'
+      ? <span className="inrow stacked">{box(0, 'número principal')}{box(1, 'subíndice', 'low')}<b className="low">°</b></span>
+      : <span className="inrow stacked">{box(0, 'número')}<b>· 10</b>{box(1, 'exponente', 'high')}</span>
+  } else if (field.kind === 'select') {
     control = (
       <select className={cls} value={value || ''} disabled={disabled} aria-label={name} onChange={(e) => onChange(e.target.value)}>
         <option value="">Elegí una opción…</option>
@@ -82,7 +94,8 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
     )
   } else {
     // Teclas de ayuda para los símbolos difíciles de escribir en el celular.
-    const keys = { factor: ['×', '^'], poly: [field.v || 'x', '^', '+', '−'], conj: ['(', ')', field.v, '^', '+', '−', '/'], set: ['−', '/', '∅'], numset: ['−', '/', ';', '∅'], expr: EXPR_KEYS, limit: ['+∞', '−∞', '−', '/', 'no existe'] }[field.kind] || []
+    const keys = { factor: ['×', '^'], poly: [field.v || 'x', '^', '+', '−'], conj: ['(', ')', field.v, '^', '+', '−', '/'], pair: ['(', ';', ')', '−', '/'], complex: ['i', '+', '−', '/'],
+      surd: ['√', '−'], surdfrac: ['(', ')', '√', '+', '/'], interval: ['(', '[', ';', ')', ']', '−∞', '+∞', '−', '/'], exprset: [...EXPR_KEYS, '∅'], set: ['−', '/', '∅'], numset: ['−', '/', ';', '∅'], expr: EXPR_KEYS, limit: ['+∞', '−∞', '−', '/', 'no existe'] }[field.kind] || []
     control = (
       <span className="inrow">
         {field.prefix && <b>{field.prefix}</b>}
@@ -105,7 +118,7 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
                   onClick={(e) => {
                     e.preventDefault()
                     if (whole) onChange(key.insert)
-                    else if (field.kind === 'expr') insert(key.insert)
+                    else if (INSERT_AT_CURSOR.includes(field.kind)) insert(key.insert)
                     else onChange(String(value || '').replace('∅', '').replace('no existe', '') + key.insert)
                   }}>{key.show}</button>
               )
@@ -115,15 +128,16 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
       )
     }
   }
-  if (field.kind === 'expr') control = <>{control}<Preview field={field} value={value} /></>
+  if (field.kind === 'expr' || (field.kind === 'exprset' && value !== '∅')) control = <>{control}<Preview field={field} value={value} /></>
   if (compact) return control
-  const Tag = ['factor', 'poly', 'set', 'numset', 'conj', 'expr', 'limit'].includes(field.kind) ? 'div' : 'label'
+  const Tag = ['factor', 'poly', 'set', 'conj', 'limit', 'polar', 'sci', ...INSERT_AT_CURSOR, 'numset'].includes(field.kind) ? 'div' : 'label'
   return <Tag className="field">{label}{control}</Tag>
 }
 
 // mode 'practica': cada ítem se comprueba por separado. mode 'examen': se corrige todo al final.
 export default function Activity({ activity, course, term }) {
-  const storageKey = `intensificacion:v1:${activity.id}`
+  // Los exámenes cambiaron de casilleros: se guardan aparte de las respuestas de la versión anterior.
+  const storageKey = `intensificacion:${activity.mode === 'examen' ? 'v2' : 'v1'}:${activity.id}`
   const [state, setState] = useState(() => ({ values: {}, checked: {}, submitted: false, ...load(storageKey) }))
   const [open, setOpen] = useState({})
   const [ask, setAsk] = useState(null) // 'submit' | 'reset' | null

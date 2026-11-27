@@ -12,8 +12,8 @@ export function FunctionGraph({ graph, small }) {
   const px = (x) => (x - x0) * u
   const py = (y) => (y1 - y) * v
   const ints = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i)
-  const every = x1 - x0 > 14 ? 4 : x1 - x0 > 10 ? 2 : 1
-  const everyY = y1 - y0 > 14 ? 4 : y1 - y0 > 10 ? 2 : 1
+  const every = graph.every || (x1 - x0 > 14 ? 4 : x1 - x0 > 10 ? 2 : 1)
+  const everyY = graph.every || (y1 - y0 > 14 ? 4 : y1 - y0 > 10 ? 2 : 1)
 
   // La curva se corta donde la función no existe o se va muy lejos de la ventana.
   const path = (f) => {

@@ -455,6 +455,10 @@ input.no, select.no { border-color: var(--no) !important; background: var(--no-b
   background: var(--surface-3); font-size: var(--fs-lg); font-weight: 700; color: var(--primary); cursor: pointer;
 }
 .key:hover { background: var(--primary-soft); border-color: var(--primary); }
+.stacked { padding-block: var(--s-3); }
+.fields .stacked input.short { flex: 0 1 8rem; }
+.fields .stacked .low { position: relative; top: var(--s-3); }
+.fields .stacked .high { position: relative; top: calc(-1 * var(--s-3)); }
 .preview { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); padding: var(--s-2) var(--s-3); font-size: var(--fs-sm); font-weight: 400; background: var(--surface-2); border: var(--bw) dashed var(--border-strong); border-radius: var(--r-sm); overflow-x: auto; }
 .preview .katex { font-size: 1.35em; }
 .item-actions { display: flex; align-items: center; gap: var(--s-4); flex-wrap: wrap; margin-top: var(--s-3); }

@@ -41,13 +41,14 @@ function PrintChart({ chart }) {
 
 function PrintItem({ item }) {
   const fields = item.table || item.chart || item.plane || item.axis || item.sketch ? [] : fieldsOf(item)
-  const needsSpace = fields.some((f) => ['poly', 'set', 'conj'].includes(f.kind) || (f.kind === 'numset' && !f.label))
-  const isCalc = fields.length === 1 && fields[0].label === 'Resultado'
+  // Con un solo resultado se deja espacio para resolver y una única línea, sin pistas de cómo llegar.
+  const single = fields.length === 1 && !['angle', 'factor'].includes(fields[0].kind)
+  const prompt = item.paper || paperText(item.prompt || '')
   const isAngle = fields[0]?.kind === 'angle'
   const isFactor = fields.some((f) => f.kind === 'factor')
   return (
     <div className="p-item">
-      {item.prompt && <p><b>{item.id})</b> <Rich text={paperText(item.prompt)} /></p>}
+      {prompt && <p><b>{item.id})</b> <Rich text={prompt} /></p>}
 
       {item.table && (
         <table className="p-table">
@@ -67,13 +68,12 @@ function PrintItem({ item }) {
       {item.plane && <div className="p-plane"><Plane value="" disabled onChange={() => {}} /></div>}
       {item.axis && <div className="p-axis"><NumberLine field={item.axis} value="" disabled onChange={() => {}} /></div>}
       {item.figure && <div className="p-tri"><TriangleFigure figure={item.figure} choices={[]} /></div>}
-      {(isCalc || isAngle || needsSpace) && <div className="p-space" />}
-      {isCalc && <Line label="Resultado:" />}
-      {isAngle && <p className="p-line"><span>Resultado:</span><i /><b>°</b><i /><b>′</b><i /><b>″</b></p>}
-      {isFactor && <><div className="p-space" />{fields.map((f) => <Line key={f.key} label={f.aria} />)}</>}
-      {!isCalc && !isAngle && !isFactor && fields.map((f) => (f.kind === 'set' || (f.kind === 'numset' && !f.label) ? <Line key={f.key} label="S =" /> :
-        <Line key={f.key} label={/[?=]$/.test(f.label) ? f.label : `${f.label}:`} unit={null} />
-      ))}
+      {fields.length > 0 && !isFactor && <div className="p-space" />}
+      {item.paperBlank ? null
+        : isAngle ? <p className="p-line"><span>Resultado:</span><i /><b>°</b><i /><b>′</b><i /><b>″</b></p>
+          : isFactor ? <><div className="p-space" />{fields.map((f) => <Line key={f.key} label={f.aria} />)}</>
+            : single ? <Line label="Respuesta:" />
+              : fields.map((f) => <Line key={f.key} label={f.kind === 'set' || (f.kind === 'numset' && !f.label) ? 'S =' : /[?=:]$/.test(f.label) ? f.label : `${f.label}:`} />)}
     </div>
   )
 }
@@ -85,7 +85,7 @@ export default function Printable({ activity, course, term }) {
       <p className="p-credit">Prof. Juan Marcelo Bejarano</p>
       <h2>{course} · {term} · {activity.title}</h2>
       <div className="p-student"><Line label="Nombre y apellido:" /><Line label="Fecha:" /></div>
-      {activity.exercises.map((e) => (
+      {(activity.sheet || activity.exercises).map((e) => (
         <section key={e.n}>
           {/* La consigna del ejercicio se mantiene junto a su primer ítem */}
           {e.items.map((item, i) => (

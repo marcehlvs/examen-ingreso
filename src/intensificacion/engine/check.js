@@ -116,8 +116,57 @@ function isNumberSet(raw, field) {
   return sort(got).every((v, i) => same(v, sort(want)[i], field.tol ? field.tol + 1e-9 : 1e-9))
 }
 
+// ---------- Respuestas completas de los exámenes ----------
+const tidy = (raw) => String(raw ?? '').replace(/\s/g, '').replace(/[−–]/g, '-')
+const near = (got, want, tol) => same(got, parseNumber(String(want)), tol ? tol + 1e-9 : 1e-9)
+
+// Par ordenado «(1 ; 5)»
+function isPair(raw, field) {
+  const m = tidy(raw).match(/^\(([^;()]+);([^;()]+)\)$/) || tidy(raw).match(/^([^;()]+);([^;()]+)$/)
+  return !!m && near(parseNumber(m[1]), field.answer[0], field.tol) && near(parseNumber(m[2]), field.answer[1], field.tol)
+}
+// Complejo en forma binómica: «5 + i», «-3i», «2,5 - 4,33i»
+function isComplex(raw, field) {
+  const got = parsePoly(tidy(raw), 'i')
+  if (!got || Object.keys(got).some((d) => d !== '0' && d !== '1')) return false
+  const tol = field.tol ? field.tol + 1e-9 : 1e-9
+  return [0, 1].every((d) => Math.abs((got[d] || 0) - parseNumber(String(field.answer[d]))) <= tol)
+}
+// a·√b ya simplificado: «9√6», «-√2»
+const rootsOnly = (raw) => tidy(raw).toLowerCase().replace(/sqrt/g, '√').replace(/[·*]/g, '').replace(/√\((\d+)\)/g, '√$1')
+function isSurd(raw, [a, b]) {
+  const m = rootsOnly(raw).match(/^([+-]?\d*)√(\d+)$/)
+  if (!m) return false
+  const coef = m[1] === '' || m[1] === '+' ? 1 : m[1] === '-' ? -1 : Number(m[1])
+  return coef === a && Number(m[2]) === b
+}
+// (a + √b) / c
+function isSurdFraction(raw, [a, b, c]) {
+  const m = rootsOnly(raw).replace(/:/g, '/').match(/^\((-?\d+)\+√(\d+)\)\/(\d+)$/)
+  return !!m && Number(m[1]) === a && Number(m[2]) === b && Number(m[3]) === c
+}
+// Intervalo «(−∞ ; 3]»
+function parseInterval(raw) {
+  const m = tidy(raw).toLowerCase().replace(/infinito|inf/g, '∞').match(/^([([])([^;]+);([^;]+)([)\]])$/)
+  if (!m) return null
+  const end = (t) => (t === '-∞' ? -Infinity : t === '∞' || t === '+∞' ? Infinity : parseNumber(t))
+  return [m[1], end(m[2]), end(m[3]), m[4]]
+}
+const isInterval = (raw, answer) => {
+  const got = parseInterval(raw), want = parseInterval(answer)
+  return !!got && want.every((v, i) => (typeof v === 'number' ? got[i] !== null && (got[i] === v || Math.abs(got[i] - v) < 1e-9) : got[i] === v))
+}
+const bothNumbers = (value, field) => [0, 1].every((i) => near(parseNumber((value || [])[i]), field.answer[i], field.tol))
+
 // Un «campo» es cada casillero que el alumno completa.
 export function isFieldOk(field, value) {
+  if (field.kind === 'pair') return isPair(value, field)
+  if (field.kind === 'complex') return isComplex(value, field)
+  if (field.kind === 'polar' || field.kind === 'sci') return bothNumbers(value, field)
+  if (field.kind === 'surd') return isSurd(value, field.answer)
+  if (field.kind === 'surdfrac') return isSurdFraction(value, field.answer)
+  if (field.kind === 'interval') return isInterval(value, field.answer)
+  if (field.kind === 'exprset') return field.answer === '∅' ? isEmptySet(value) : exprEqual(String(value ?? ''), field.answer)
   if (field.kind === 'expr') return exprEqual(value, field.answer, { antiderivative: field.antiderivative, points: field.points })
   if (field.kind === 'limit') {
     const got = parseLimit(value, parseNumber), want = typeof field.answer === 'number' || /\d/.test(String(field.answer)) ? parseNumber(String(field.answer)) : field.answer
@@ -186,6 +235,21 @@ export function isSkipped(exercise, item, values) {
 
 export const show = (field) => {
   const es = (v) => String(v).replace('.', ',')
+  const signed = (v) => es(v).replace('-', '−')
+  if (field.kind === 'pair') return `(${signed(field.answer[0])} ; ${signed(field.answer[1])})`
+  if (field.kind === 'complex') {
+    const [re, im] = field.answer.map(String)
+    const size = im.replace('-', ''), imag = `${size === '1' ? '' : es(size)}i`
+    if (im === '0') return signed(re)
+    if (re === '0') return `${im.startsWith('-') ? '−' : ''}${imag}`
+    return `${signed(re)} ${im.startsWith('-') ? '−' : '+'} ${imag}`
+  }
+  if (field.kind === 'polar') return `módulo ${es(field.answer[0])}, argumento ${es(field.answer[1])}°`
+  if (field.kind === 'sci') return `${es(field.answer[0])} · 10^${field.answer[1]}`
+  if (field.kind === 'surd') return `${field.answer[0] === 1 ? '' : field.answer[0] === -1 ? '−' : signed(field.answer[0])}√${field.answer[1]}`
+  if (field.kind === 'surdfrac') return `(${field.answer[0]} + √${field.answer[1]}) / ${field.answer[2]}`
+  if (field.kind === 'interval') return field.answer
+  if (field.kind === 'exprset') return field.display
   if (field.kind === 'expr') return field.display || field.answer.replace(/sqrt/g, '√').replace(/\^(\d)(?!\d)/g, (_, d) => SUP[d]).replace(/\*/g, '·')
   if (field.kind === 'limit') return field.display || (field.answer === 'inf' ? '+∞' : field.answer === '-inf' ? '−∞' : field.answer === 'dne' ? 'no existe' : field.tol ? `≈ ${es(field.answer)}` : es(field.answer).replace('-', '−'))
   if (field.kind === 'numset') return field.answer === '∅' ? '∅' : `{${field.answer.map(es).join(' ; ')}}`

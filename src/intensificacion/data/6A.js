@@ -76,27 +76,67 @@ const G1 = { // salto en x = 2, con f(2) aislado
     { tex: r`f(2)`, answer: '1', why: 'el único punto de la gráfica con $x = 2$ es el círculo lleno, de altura 1.' },
   ],
 }
-const G2 = { // discontinuidad evitable en x = 1
-  window: [-3, 4, -3, 6], alt: 'Recta con un agujero en x = 1',
-  curves: [{ f: (x) => x + 1 }], dots: [{ x: 1, y: 2, open: true }, { x: 1, y: 4 }],
+// Gráficos de los exámenes: varias ramas, y se pide directamente cada límite.
+const ask = (tex, answer, why) => ({ tex, answer, why })
+const between = (a, b) => (x) => x > a && x < b
+// Espejo de un gráfico: g(x) = k − f(−x).
+const mirror = (spec, k, answers) => {
+  const [x0, x1, y0, y1] = spec.window
+  return {
+    window: [-x1, -x0, k - y1, k - y0], alt: spec.alt, every: spec.every,
+    curves: spec.curves.map(({ f }) => ({ f: (x) => k - f(-x) })),
+    asymptotes: spec.asymptotes.map((a) => (a.x !== undefined ? { x: -a.x } : { y: k - a.y })),
+    dots: spec.dots.map((d) => ({ ...d, x: -d.x, y: k - d.y })),
+    questions: answers,
+  }
+}
+const LIM = (to) => r`\lim_{x \to ${to}} f(x)`
+
+const H1 = {
+  every: 1, window: [-7, 8, -4, 7], alt: 'Gráfico de una función definida por tramos, con asíntotas',
+  curves: [
+    piece((x) => 1 + 1 / (x + 2) ** 2, (x) => x < -2), piece((x) => 1 / (x + 2) + 5 / 3, between(-2, 1)),
+    piece((x) => 4 - 2 * x, between(1, 3)), piece((x) => 3 - 2 / (x - 2), (x) => x > 3),
+  ],
+  asymptotes: [{ x: -2 }, { y: 1 }, { y: 3 }],
+  dots: [{ x: 1, y: 2, open: true }, { x: 1, y: 4 }, { x: 3, y: -2 }, { x: 3, y: 1, open: true }],
   questions: [
-    { tex: r`\lim_{x \to 1^{-}} f(x)`, answer: '2', why: 'por la izquierda la recta se acerca a la altura 2.' },
-    { tex: r`\lim_{x \to 1^{+}} f(x)`, answer: '2', why: 'por la derecha también se acerca a la altura 2.' },
-    { tex: r`\lim_{x \to 1} f(x)`, answer: '2', why: 'los límites laterales coinciden: el límite existe, aunque $f(1)$ valga otra cosa.' },
-    { tex: r`f(1)`, answer: '4', why: 'el punto lleno está a altura 4.' },
+    ask(LIM('-2'), 'inf', 'por los dos lados la curva sube sin límite.'),
+    ask(LIM('1'), '2', 'por los dos lados se acerca a 2, aunque $f(1) = 4$.'),
+    ask(LIM('3'), 'dne', 'por la izquierda tiende a $-2$ y por la derecha a $1$.'),
+    ask(LIM(r`-\infty`), '1', 'a la izquierda se acerca a la recta $y = 1$.'),
+    ask(LIM(r`+\infty`), '3', 'a la derecha se acerca a la recta $y = 3$.'),
   ],
 }
-const G3 = { // salto con f(a) igual al límite por la derecha
-  window: [-5, 3, -1, 8], alt: 'Gráfico con un salto en x = −1',
-  curves: [piece((x) => x + 4, (x) => x < -1), piece((x) => x * x, (x) => x >= -1)],
-  dots: [{ x: -1, y: 3, open: true }, { x: -1, y: 1 }],
+const H2 = mirror(H1, 2, [
+  ask(LIM('2'), '-inf', 'por los dos lados la curva baja sin límite.'),
+  ask(LIM('-1'), '0', 'por los dos lados se acerca a 0, aunque $f(-1) = -2$.'),
+  ask(LIM('-3'), 'dne', 'por la izquierda tiende a $1$ y por la derecha a $4$.'),
+  ask(LIM(r`-\infty`), '-1', 'a la izquierda se acerca a la recta $y = -1$.'),
+  ask(LIM(r`+\infty`), '1', 'a la derecha se acerca a la recta $y = 1$.'),
+])
+const I1 = {
+  every: 1, window: [-7, 8, -5, 7], alt: 'Gráfico de una función con dos asíntotas verticales',
+  curves: [
+    piece((x) => 2 + 1 / (x + 1), (x) => x < -1), piece((x) => 4 / ((x + 1) * (3 - x)), between(-1, 3)),
+    piece((x) => 1 / (x - 3) - 1, (x) => x > 3),
+  ],
+  asymptotes: [{ x: -1 }, { x: 3 }, { y: 2 }, { y: -1 }], dots: [],
   questions: [
-    { tex: r`\lim_{x \to -1^{-}} f(x)`, answer: '3', why: 'por la izquierda la curva se acerca a la altura 3.' },
-    { tex: r`\lim_{x \to -1^{+}} f(x)`, answer: '1', why: 'por la derecha se acerca a la altura 1.' },
-    { tex: r`\lim_{x \to -1} f(x)`, answer: 'dne', why: 'los límites laterales son distintos.' },
-    { tex: r`f(-1)`, answer: '1', why: 'el círculo lleno está a altura 1.' },
+    ask(LIM('-1'), 'dne', 'por la izquierda tiende a $-\\infty$ y por la derecha a $+\\infty$.'),
+    ask(LIM('1'), '1', 'la curva pasa por el punto $(1\\,;\\,1)$ sin saltos.'),
+    ask(LIM('3'), 'inf', 'por los dos lados la curva sube sin límite.'),
+    ask(LIM(r`-\infty`), '2', 'a la izquierda se acerca a la recta $y = 2$.'),
+    ask(LIM(r`+\infty`), '-1', 'a la derecha se acerca a la recta $y = -1$.'),
   ],
 }
+const I2 = mirror(I1, 1, [
+  ask(LIM('1'), 'dne', 'por la izquierda tiende a $-\\infty$ y por la derecha a $+\\infty$.'),
+  ask(LIM('-1'), '0', 'la curva pasa por el punto $(-1\\,;\\,0)$ sin saltos.'),
+  ask(LIM('-3'), '-inf', 'por los dos lados la curva baja sin límite.'),
+  ask(LIM(r`-\infty`), '2', 'a la izquierda se acerca a la recta $y = 2$.'),
+  ask(LIM(r`+\infty`), '-1', 'a la derecha se acerca a la recta $y = -1$.'),
+])
 
 const c1Modelo = [
   vectors([[3, 4], [-2, 1], [op('u + v', r`\vec{u} + \vec{v}`, 1, 1), op('2u − 3v', r`2\vec{u} - 3\vec{v}`, 2, -3)], [3, 4]]),
@@ -138,7 +178,7 @@ const c1Ex1 = [
   ], [[-2, 3, 1], [-1, 2], -1], 0,
   r`\lim_{x \to 2} \sqrt{x^3 + 1}`, '3', [r`El límite de una raíz es la raíz del límite: $\sqrt{2^3 + 1} = \sqrt{9}$.`, r`$= 3$.`],
   [1, [0, 2], [3, -1]]]),
-  graphEx(G2),
+  graphEx(H1),
 ]
 const c1Ex2 = [
   vectors([[8, -6], [3, 4], [op('u − v', r`\vec{u} - \vec{v}`, 1, -1), op('2u + v', r`2\vec{u} + \vec{v}`, 2, 1)], [8, -6]]),
@@ -159,7 +199,7 @@ const c1Ex2 = [
   ], [[1, 3, 2], [-1, 1], -1], 0,
   r`\lim_{x \to 5} \sqrt{x^2 - 9}`, '4', [r`El límite de una raíz es la raíz del límite: $\sqrt{5^2 - 9} = \sqrt{16}$.`, r`$= 4$.`],
   [-1, [-1, 0, 1], [2, 1]]]),
-  graphEx(G3),
+  graphEx(H2),
 ]
 
 // =====================================================================
@@ -220,25 +260,6 @@ const GI1 = { // x = 2 asíntota vertical y y = 1 horizontal
     { tex: r`\lim_{x \to 2^{-}} f(x)`, answer: '-inf', why: 'por la izquierda la curva baja sin límite.' },
     { tex: r`\lim_{x \to 2^{+}} f(x)`, answer: 'inf', why: 'por la derecha la curva sube sin límite.' },
     { tex: r`\lim_{x \to +\infty} f(x)`, answer: '1', why: 'a la derecha la curva se acerca a la asíntota horizontal $y = 1$.' },
-  ],
-}
-const GI2 = { // −1/(x+1)² : x = −1, y = 0
-  window: [-6, 4, -6, 2], alt: 'Gráfico con asíntota x = −1',
-  curves: [piece((x) => -1 / (x + 1) ** 2, (x) => x < -1), piece((x) => -1 / (x + 1) ** 2, (x) => x > -1)], asymptotes: [{ x: -1 }],
-  questions: [
-    { tex: r`\lim_{x \to -1^{-}} f(x)`, answer: '-inf', why: 'por la izquierda la curva baja sin límite.' },
-    { tex: r`\lim_{x \to -1^{+}} f(x)`, answer: '-inf', why: 'por la derecha también baja sin límite.' },
-    { tex: r`\lim_{x \to -1} f(x)`, answer: '-inf', why: 'los dos límites laterales son iguales, el límite es $-\\infty$.' },
-    { tex: r`\lim_{x \to +\infty} f(x)`, answer: '0', why: 'la curva se acerca al eje $x$ por abajo.' },
-  ],
-}
-const GI3 = { // 2/(x-1) − 1 : x = 1, y = −1
-  window: [-5, 7, -6, 4], alt: 'Gráfico con asíntotas x = 1 e y = −1',
-  curves: [piece((x) => 2 / (x - 1) - 1, (x) => x < 1), piece((x) => 2 / (x - 1) - 1, (x) => x > 1)], asymptotes: [{ x: 1 }, { y: -1 }],
-  questions: [
-    { tex: r`\lim_{x \to 1^{-}} f(x)`, answer: '-inf', why: 'por la izquierda la curva baja sin límite.' },
-    { tex: r`\lim_{x \to 1^{+}} f(x)`, answer: 'inf', why: 'por la derecha la curva sube sin límite.' },
-    { tex: r`\lim_{x \to -\infty} f(x)`, answer: '-1', why: 'a la izquierda la curva se acerca a $y = -1$.' },
   ],
 }
 const graphLimits = (spec) => ({ n: 9, title: 'Límites infinitos en un gráfico', statement: 'Las líneas punteadas son asíntotas. ' + INF_HINT, items: [limGraph('9a', spec)] })
@@ -302,7 +323,7 @@ const c2Ex1 = [
     e: ['1', '3', '(2x - 1)', 'x^2-x', 'x² − x', 6, [r`Una primitiva es $F(x) = x^2 - x$.`, r`Barrow: $F(3) - F(1) = (9 - 3) - (1 - 1) = 6$.`]],
     f: ['0', r`\tfrac{\pi}{2}`, r`\cos x`, 'sin(x)', 'sen x', 1, [r`Una primitiva es $F(x) = \mathrm{sen}\,x$.`, r`Barrow: $F\!\left(\frac{\pi}{2}\right) - F(0) = 1 - 0 = 1$.`]],
   }),
-  graphLimits(GI2),
+  graphLimits(I1),
 ]
 const c2Ex2 = [
   infinite([[[5], [0, 0, 1], 0], [[1], [2, 1], -2], [[0, -2, 5], [1, 0, 3], 1], [[0, -1, 0, 0, 1], [1, 0, 1], -1]]),
@@ -332,7 +353,7 @@ const c2Ex2 = [
     e: ['0', '1', '(3x^2 + 2x)', 'x^3+x^2', 'x³ + x²', 2, [r`Una primitiva es $F(x) = x^3 + x^2$.`, r`Barrow: $F(1) - F(0) = (1 + 1) - 0 = 2$.`]],
     f: ['1', 'e', r`\dfrac{1}{x}`, 'ln(x)', 'ln x', 1, [r`Una primitiva es $F(x) = \ln x$.`, r`Barrow: $F(e) - F(1) = \ln e - \ln 1 = 1 - 0 = 1$.`]],
   }),
-  graphLimits(GI3),
+  graphLimits(I2),
 ]
 
 export const SECTION_6A = {

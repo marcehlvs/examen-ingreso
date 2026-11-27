@@ -377,7 +377,7 @@ export function limGraph(id, spec) {
     ...item(id, spec.prompt || 'Observá el gráfico de la función f (los círculos vacíos son puntos que no pertenecen a la gráfica; los llenos, sí) y completá.',
       spec.questions.map((q) => lim(q.answer, `$${q.tex}$ =`)),
       spec.questions.map((q) => r`$${q.tex} = ${q.answer === 'dne' ? '\\text{no existe}' : q.answer === 'inf' ? '+\\infty' : q.answer === '-inf' ? '-\\infty' : q.answer}$: ${q.why}`)),
-    graph: { window: spec.window, curves: spec.curves, dots: spec.dots || [], asymptotes: spec.asymptotes || [], alt: spec.alt },
+    graph: { window: spec.window, curves: spec.curves, dots: spec.dots || [], asymptotes: spec.asymptotes || [], alt: spec.alt, every: spec.every },
   }
 }
 

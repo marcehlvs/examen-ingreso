@@ -4,7 +4,10 @@ import Rich from '../shared/Rich'
 import Dialog from '../shared/Dialog'
 import Notice from '../shared/Notice'
 import Empty from '../shared/Empty'
-import { Timer, Chart, Party } from '../shared/Icons'
+import { Timer, Chart, Party, Grid } from '../shared/Icons'
+import Ring, { toneOf } from '../shared/Ring'
+import Dock, { DockSpace, DockProgress } from '../shared/Dock'
+import QuestionSheet from './QuestionSheet'
 import { storageAvailable } from '../shared/storage'
 import Figura from './Figura'
 import Figura2 from './Figura2'
@@ -52,6 +55,7 @@ export default function Ingreso() {
   const [usedMs, setUsedMs] = useState(saved.usedMs ?? null)
   const [now, setNow] = useState(Date.now())
   const [pending, setPending] = useState(null) // 'submit' | 'reset' | null
+  const [mapOpen, setMapOpen] = useState(false)
   const canSave = useMemo(storageAvailable, [])
 
   useEffect(() => {
@@ -96,6 +100,7 @@ export default function Ingreso() {
     ref.current.submitted = true
     setUsedMs(used)
     setSubmitted(true)
+    setMapOpen(false)
     setPending(null)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -131,6 +136,16 @@ export default function Ingreso() {
 
   const remaining = startedAt ? examMs - (now - startedAt) : examMs
   const timerRunning = startedAt && !submitted
+
+  const goTo = (q) => {
+    setMapOpen(false)
+    // Se espera a que la hoja se cierre (recupera el scroll y el foco) y recién ahí se va a la pregunta.
+    setTimeout(() => {
+      const el = document.getElementById(`q-${q.id}`)
+      el?.scrollIntoView({ block: 'center' })
+      el?.querySelector('.opt')?.focus({ preventScroll: true })
+    }, 60)
+  }
 
   const toggleSol = (id) => setOpenSol((o) => ({ ...o, [id]: !o[id] }))
 
@@ -198,18 +213,14 @@ export default function Ingreso() {
 
   return (
     <>
-      <div className="topbar" role="region" aria-label="Progreso del examen">
-        <div className="topbar-row">
-          <strong>Ingreso a 2° año 2027</strong>
-          {timerRunning && (
-            <span role="timer" aria-label={`Tiempo restante: ${fmt(remaining)}`} className={`timer ${remaining < 5 * 60 * 1000 ? 'low' : ''}`}><span aria-hidden="true">⏱ </span>{fmt(remaining)}</span>
-          )}
-          <span>{answered}/{questions.length}{showScore ? ` · ${score}/${TOTAL} pts` : ''}</span>
+      {submitted && (
+        <div className="topbar" role="region" aria-label="Resultado del examen">
+          <div className="topbar-row">
+            <strong>{score}/{TOTAL} pts</strong>
+            <span>{answered}/{questions.length} respondidas</span>
+          </div>
         </div>
-        <div className="bar" role="progressbar" aria-label="Preguntas respondidas" aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={answered}>
-          <div className="fill" style={{ width: `${(answered / questions.length) * 100}%` }} />
-        </div>
-      </div>
+      )}
 
       <header className="hero">
         <p className="eyebrow">Ingreso a 2.º año 2027</p>
@@ -246,7 +257,7 @@ export default function Ingreso() {
 
         {!showStats && (
           <nav className="chips" aria-label="Ir a un ejercicio">
-            {SECTIONS.map((s) => (
+            {sections.map((s) => (
               <button key={s.id} type="button" onClick={() => document.getElementById(`ex-${s.id}`)?.scrollIntoView()}>Ej. {s.id}</button>
             ))}
           </nav>
@@ -258,8 +269,15 @@ export default function Ingreso() {
       {showStats ? <Stats onStart={() => setShowStats(false)} /> : (<>
       {submitted && (
         <section className="result" aria-labelledby="resultado">
-          <h2 id="resultado">Resultado</h2>
-          <p className="big">{score}<small> / {TOTAL}</small></p>
+          <div className="result-head">
+            <Ring pct={Math.round((score / TOTAL) * 100)} size={112} stroke={10} animate tone={toneOf(Math.round((score / TOTAL) * 100))}>
+              {Math.round((score / TOTAL) * 100)}%
+            </Ring>
+            <div>
+              <h2 id="resultado">Resultado</h2>
+              <p className="big">{score}<small> / {TOTAL}</small></p>
+            </div>
+          </div>
           <p className="pct">
             {Math.round((score / TOTAL) * 100)}% de respuestas puntuadas
             {usedMs !== null && ` · Tiempo usado: ${fmt(usedMs)}`}
@@ -318,6 +336,26 @@ export default function Ingreso() {
       </footer>
       </>)}
 
+
+      {!submitted && !showStats && (
+        <>
+          <DockSpace />
+          <Dock label="Avance y corrección">
+            <div className="dock-bar">
+              <button type="button" className="btn ghost small" onClick={() => setMapOpen(true)} aria-haspopup="dialog">
+                <Grid /> Preguntas
+              </button>
+              {timerRunning && (
+                <span role="timer" aria-label={`Tiempo restante: ${fmt(remaining)}`} className={`timer ${remaining < 5 * 60 * 1000 ? 'low' : ''}`}><Timer /> {fmt(remaining)}</span>
+              )}
+              <div className="grow"><DockProgress count={answered} total={questions.length} label="respondidas" /></div>
+              <button type="button" className="btn" onClick={submit}>Corregir</button>
+            </div>
+          </Dock>
+        </>
+      )}
+
+      {mapOpen && <QuestionSheet sections={bySection} answers={answers} onPick={goTo} onClose={() => setMapOpen(false)} />}
 
       {pending && (
         <Dialog

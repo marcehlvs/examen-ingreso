@@ -5,3 +5,5 @@ export const Chart = () => <svg {...base}><path d="M5 20V10M12 20V4M19 20v-7" />
 export const Inbox = () => <svg {...base}><path d="M3 13l3-8h12l3 8v6H3z" /><path d="M3 13h5l1 3h6l1-3h5" /></svg>
 export const Compass = () => <svg {...base}><circle cx="12" cy="12" r="9" /><path d="M15.5 8.5l-2 5-5 2 2-5z" /></svg>
 export const Party = () => <svg {...base}><circle cx="12" cy="12" r="9" /><path d="M8 12.5l2.5 2.5L16 9.5" /></svg>
+export const Arrow = () => <svg {...base}><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+export const Grid = () => <svg {...base}><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><rect x="14" y="14" width="6" height="6" rx="1" /></svg>

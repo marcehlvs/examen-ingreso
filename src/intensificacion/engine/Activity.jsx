@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import Rich from '../../shared/Rich'
 import Dialog from '../../shared/Dialog'
 import Notice from '../../shared/Notice'
 import { storageAvailable } from '../../shared/storage'
+import Ring, { toneOf } from '../../shared/Ring'
+import Dock, { DockSpace, DockProgress } from '../../shared/Dock'
 import { XYChart, PieChart } from './Charts'
 import { FunctionGraph, Sketches } from './Graphs'
 import { Plane, TriangleFigure, NumberLine, Trapezoid } from './Geometry'
@@ -25,6 +27,7 @@ const EXPR_KEYS = [
   { show: 'a/b', insert: '/', name: 'dividido' },
   { show: '(', insert: '(', name: 'abrir paréntesis' },
   { show: ')', insert: ')', name: 'cerrar paréntesis' },
+  { show: 'π', insert: 'π', name: 'pi' },
   { show: 'eˣ', insert: 'e^(', name: 'e elevado a' },
   { show: 'ln', insert: 'ln(', name: 'logaritmo natural' },
   { show: 'sen', insert: 'sen(', name: 'seno' },
@@ -33,6 +36,10 @@ const EXPR_KEYS = [
 ]
 
 const INSERT_AT_CURSOR = ['expr', 'exprset', 'pair', 'complex', 'surd', 'surdfrac', 'interval']
+
+// Teclado de símbolos único, fijo al pie: el campo que tiene el foco le avisa qué teclas ofrecer y cómo insertarlas.
+const KeyCtx = createContext(null)
+const keyOf = (k) => (typeof k === 'string' ? { show: k, insert: k, name: k } : k)
 
 // Muestra la respuesta como se escribe en papel, para que el alumno controle que sea la que quiso poner.
 function Preview({ field, value }) {
@@ -49,6 +56,7 @@ function Preview({ field, value }) {
 
 function Field({ field, value, onChange, disabled, mark, compact }) {
   const input = useRef(null)
+  const kb = useContext(KeyCtx)
   // Inserta donde está el cursor (o reemplaza lo seleccionado).
   const insert = (text) => {
     const el = input.current, now = String(value || '')
@@ -96,37 +104,32 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
     // Teclas de ayuda para los símbolos difíciles de escribir en el celular.
     const keys = { factor: ['×', '^'], poly: [field.v || 'x', '^', '+', '−'], conj: ['(', ')', field.v, '^', '+', '−', '/'], pair: ['(', ';', ')', '−', '/'], complex: ['i', '+', '−', '/'],
       surd: ['√', '−'], surdfrac: ['(', ')', '√', '+', '/'], interval: ['(', '[', ';', ')', ']', '−∞', '+∞', '−', '/'], exprset: [...EXPR_KEYS, '∅'], set: ['−', '/', '∅'], numset: ['−', '/', ';', '∅'], expr: EXPR_KEYS, limit: ['+∞', '−∞', '−', '/', 'no existe'] }[field.kind] || []
+    const usable = keys.filter(Boolean)
+    const withKeys = !!kb && usable.length > 0 && !disabled
+    if (withKeys) {
+      // Siempre la versión más nueva: así la tecla actúa sobre lo que está escrito ahora.
+      kb.fns.current[field.key] = (key) => {
+        const whole = key.insert === '∅' || key.insert === 'no existe'
+        if (whole) onChange(key.insert)
+        else if (INSERT_AT_CURSOR.includes(field.kind)) insert(key.insert)
+        else onChange(String(value || '').replace('∅', '').replace('no existe', '') + key.insert)
+      }
+    }
     control = (
       <span className="inrow">
         {field.prefix && <b>{field.prefix}</b>}
         <input ref={input} className={cls} type="text" value={value || ''} disabled={disabled} aria-label={name} autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck={false}
-          onChange={(e) => onChange(e.target.value)} />
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={withKeys ? (e) => {
+            kb.open(field.key, usable.map(keyOf))
+            const el = e.currentTarget
+            // Deja el campo a la vista, sobre el teclado de símbolos.
+            setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 320)
+          } : undefined}
+          onBlur={withKeys ? () => kb.close(field.key) : undefined} />
         {field.suffix && <b>{field.suffix}</b>}
       </span>
     )
-    if (keys.length && !disabled) {
-      control = (
-        <span className="withkeys">
-          {control}
-          <span className="keys">
-            {keys.map((k) => {
-              const key = typeof k === 'string' ? { show: k, insert: k, name: k } : k
-              const whole = key.insert === '∅' || key.insert === 'no existe'
-              return (
-                <button key={key.show} type="button" className="key" aria-label={`Agregar ${key.name}`} title={key.name}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    if (whole) onChange(key.insert)
-                    else if (INSERT_AT_CURSOR.includes(field.kind)) insert(key.insert)
-                    else onChange(String(value || '').replace('∅', '').replace('no existe', '') + key.insert)
-                  }}>{key.show}</button>
-              )
-            })}
-          </span>
-        </span>
-      )
-    }
   }
   if (field.kind === 'expr' || (field.kind === 'exprset' && value !== '∅')) control = <>{control}<Preview field={field} value={value} /></>
   if (compact) return control
@@ -143,6 +146,13 @@ export default function Activity({ activity, course, term }) {
   const [ask, setAsk] = useState(null) // 'submit' | 'reset' | null
   const [printing, setPrinting] = useState(false)
   const canSave = useMemo(storageAvailable, [])
+  const [kbOpen, setKbOpen] = useState(null) // { id, keys } del campo con el foco
+  const kbFns = useRef({})
+  const kbCtx = useMemo(() => ({
+    fns: kbFns,
+    open: (id, keys) => setKbOpen({ id, keys }),
+    close: (id) => setKbOpen((c) => (c && c.id === id ? null : c)),
+  }), [])
   const { values, checked, submitted } = state
   const exam = activity.mode === 'examen'
 
@@ -161,6 +171,7 @@ export default function Activity({ activity, course, term }) {
   }))
   const submit = () => {
     setState((s) => ({ ...s, submitted: true }))
+    setKbOpen(null)
     setAsk(null)
     window.scrollTo(0, 0)
   }
@@ -267,8 +278,10 @@ export default function Activity({ activity, course, term }) {
     )
   }
 
+  const examDock = exam && !submitted
+
   return (
-    <>
+    <KeyCtx.Provider value={kbCtx}>
       <div className="pdfbar">
         {pdfButton}
         <p>Hoja para resolver en papel. En la ventana que se abre, elegí «Guardar como PDF».</p>
@@ -277,8 +290,15 @@ export default function Activity({ activity, course, term }) {
 
       {exam && submitted && (
         <section className="result" aria-labelledby="resultado">
-          <h2 id="resultado">Resultado</h2>
-          <p className="big">{okCount}<small> / {items.length} ítems correctos</small></p>
+          <div className="result-head">
+            <Ring pct={Math.round((okCount / items.length) * 100)} size={112} stroke={10} animate tone={toneOf(Math.round((okCount / items.length) * 100))}>
+              {Math.round((okCount / items.length) * 100)}%
+            </Ring>
+            <div>
+              <h2 id="resultado">Resultado</h2>
+              <p className="big">{okCount}<small> / {items.length} ítems correctos</small></p>
+            </div>
+          </div>
           <p className="pct">Un ítem cuenta como correcto cuando todos sus casilleros están bien.</p>
           {okCount === items.length
             ? <Notice tone="success">¡Excelente! Resolviste todos los ítems bien.</Notice>
@@ -333,6 +353,26 @@ export default function Activity({ activity, course, term }) {
             : 'Se borrarán las respuestas de esta actividad.'}
         </Dialog>
       )}
-    </>
+
+      <DockSpace tall />
+      {kbOpen ? (
+        <Dock label="Teclado de símbolos" lift className="keydock">
+          <div className="keys big" role="group" aria-label="Símbolos">
+            {kbOpen.keys.map((key) => (
+              <button key={key.show} type="button" className="key" aria-label={`Agregar ${key.name}`} title={key.name}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={(e) => { e.preventDefault(); kbFns.current[kbOpen.id]?.(key) }}>{key.show}</button>
+            ))}
+          </div>
+        </Dock>
+      ) : examDock && (
+        <Dock label="Avance y corrección">
+          <div className="dock-bar">
+            <div className="grow"><DockProgress count={items.length - pending} total={items.length} label="ítems completos" /></div>
+            <button type="button" className="btn" onClick={() => (pending ? setAsk('submit') : submit())}>Corregir</button>
+          </div>
+        </Dock>
+      )}
+    </KeyCtx.Provider>
   )
 }

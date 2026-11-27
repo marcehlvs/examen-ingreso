@@ -103,11 +103,22 @@ const isEmptySet = (raw) => /^(∅|ø|\{\}|vac[ií]o)$/i.test(String(raw ?? '').
 // Recta dibujada: el alumno marca dos puntos, guardados como «x,y;x,y».
 export const parsePoints = (raw) => String(raw || '').split(';').filter(Boolean).map((p) => p.split(',').map(Number))
 
-const same = (a, b) => a !== null && Math.abs(a - b) < 1e-9
+const same = (a, b, tol = 1e-9) => a !== null && Math.abs(a - b) <= tol
+
+// Conjunto con uno o varios números separados por «;», en cualquier orden, o vacío.
+function isNumberSet(raw, field) {
+  if (field.answer === '∅') return isEmptySet(raw)
+  const got = String(raw ?? '').replace(/[{}]/g, '').split(';').map(parseNumber)
+  const want = field.answer.map(parseNumber)
+  if (got.length !== want.length || got.some((v) => v === null)) return false
+  const sort = (l) => [...l].sort((a, b) => a - b)
+  return sort(got).every((v, i) => same(v, sort(want)[i], field.tol ? field.tol + 1e-9 : 1e-9))
+}
 
 // Un «campo» es cada casillero que el alumno completa.
 export function isFieldOk(field, value) {
-  if (field.kind === 'select') return value === field.answer
+  if (field.kind === 'select' || field.kind === 'sketch') return value === field.answer
+  if (field.kind === 'numset') return isNumberSet(value, field)
   if (field.kind === 'poly') return samePoly(parsePoly(value, field.v), parsePoly(field.answer, field.v))
   if (field.kind === 'set') return field.answer === '∅' ? isEmptySet(value) : same(parseNumber(value), parseNumber(field.answer))
   if (field.kind === 'line') return isLine(value, field)
@@ -127,7 +138,7 @@ export function isFieldOk(field, value) {
     const nums = [0, 1, 2].map((i) => (/^\d+$/.test((v[i] || '').trim()) ? Number(v[i]) : null))
     return nums.every((x, i) => x === field.answer[i])
   }
-  return same(parseNumber(value), parseNumber(field.answer))
+  return same(parseNumber(value), parseNumber(field.answer), field.tol ? field.tol + 1e-9 : 1e-9)
 }
 
 export const isFilled = (value) =>
@@ -135,6 +146,7 @@ export const isFilled = (value) =>
 
 // Todos los campos de un ítem, vengan de una lista, una tabla o un gráfico.
 export function fieldsOf(item) {
+  if (item.sketch) return [item.sketch]
   if (item.plane) return [item.plane]
   if (item.axis) return [item.axis]
   if (item.table) return item.table.rows.flat().filter((c) => typeof c === 'object')
@@ -144,7 +156,33 @@ export function fieldsOf(item) {
 
 export const isItemOk = (item, values) => fieldsOf(item).every((f) => isFieldOk(f, values[f.key]))
 
+// Ejercicios con consigna «elegí k»: se cuentan solo k grupos de ítems. Para corregir, los mejor resueltos;
+// para saber qué falta completar, los que tienen más casilleros escritos.
+export function countedItems(exercise, values, by = 'ok') {
+  if (!exercise.choose) return exercise.items
+  const { k, groups } = exercise.choose
+  const ranked = groups.map((ids, order) => {
+    const items = ids.map((id) => exercise.items.find((i) => i.id === id))
+    const ok = items.filter((i) => isItemOk(i, values)).length
+    const filled = items.filter((i) => fieldsOf(i).some((f) => isFilled(values[f.key]))).length
+    return { items, order, score: by === 'ok' ? ok * 100 + filled : filled }
+  }).sort((a, b) => b.score - a.score || a.order - b.order)
+  return ranked.slice(0, k).sort((a, b) => a.order - b.order).flatMap((g) => g.items)
+}
+
+// Un ítem queda «sin elegir» si su grupo está vacío y ya hay otros k grupos con respuestas.
+export function isSkipped(exercise, item, values) {
+  if (!exercise.choose) return false
+  const used = (ids) => ids.some((id) => fieldsOf(exercise.items.find((i) => i.id === id)).some((f) => isFilled(values[f.key])))
+  const mine = exercise.choose.groups.find((ids) => ids.includes(item.id))
+  return !!mine && !used(mine) && exercise.choose.groups.filter(used).length >= exercise.choose.k
+}
+
 export const show = (field) => {
+  const es = (v) => String(v).replace('.', ',')
+  if (field.kind === 'numset') return field.answer === '∅' ? '∅' : `{${field.answer.map(es).join(' ; ')}}`
+  if (field.kind === 'sketch') return `gráfico ${field.answer}`
+  if (field.kind === 'num' && field.tol) return `≈ ${es(field.answer)}`
   if (field.kind === 'angle') return `${field.answer[0]}° ${field.answer[1]}′ ${field.answer[2]}″`
   if (field.kind === 'factor') return factorText(field.answer)
   if (field.kind === 'line') return `la recta que pasa por (0 ; ${field.b}) y (1 ; ${field.m + field.b})`

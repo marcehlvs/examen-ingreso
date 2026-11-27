@@ -1,4 +1,4 @@
-// 1.º año, sección A. «Modelo 2025» transcribe los modelos del profesor; en el 2.º cuatrimestre
+// 1.º año, sección A. «Modelo 2026» transcribe los modelos del profesor; en el 2.º cuatrimestre
 // el último punto (ángulos con incógnita) se reemplazó por el de estadística.
 import { num, sel, item, calc, angleCalc, factorItem, inverseExercise, statsExercise } from './builders'
 
@@ -197,7 +197,7 @@ const c2Ex2 = [
 ]
 
 const set = (cuatri, modelo, ex1, ex2) => [
-  { slug: 'practica', mode: 'practica', title: 'Práctica: modelo 2025', description: 'El modelo de la intensificación. Comprobá cada ítem y mirá el desarrollo paso a paso.', exercises: modelo },
+  { slug: 'practica', mode: 'practica', title: 'Práctica: modelo 2026', description: 'El modelo de la intensificación. Comprobá cada ítem y mirá el desarrollo paso a paso.', exercises: modelo },
   { slug: 'examen-1', mode: 'examen', title: 'Examen 1', description: 'Se corrige todo al final.', exercises: ex1 },
   { slug: 'examen-2', mode: 'examen', title: 'Examen 2', description: 'Se corrige todo al final.', exercises: ex2 },
 ].map((a) => ({ ...a, id: `1A-${cuatri}-${a.slug}` }))

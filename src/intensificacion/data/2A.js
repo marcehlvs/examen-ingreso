@@ -1,4 +1,4 @@
-// 2.º año, sección A. «Modelo 2024» transcribe las hojas del profesor (encabezadas 2024); en el 2.º cuatrimestre
+// 2.º año, sección A. «Modelo 2026» transcribe las hojas del profesor; en el 2.º cuatrimestre
 // el ejercicio 4 (ángulos) se reemplazó por el de estadística.
 import { num, item, calc, activitySet } from './builders'
 import { exprItem, eqItem, ineqItem, givenLine, twoPointLine, triangleItem, statsExercise2 } from './builders2'
@@ -211,8 +211,8 @@ const c2Ex2 = [
 export const SECTION_2A = {
   terms: [
     { id: '1', title: '1.er cuatrimestre', topics: 'Enteros · Racionales · Sumas algebraicas · Expresiones algebraicas · Notación científica',
-      activities: activitySet('2A-c1', 2024, c1Modelo, c1Ex1, c1Ex2) },
+      activities: activitySet('2A-c1', 2026, c1Modelo, c1Ex1, c1Ex2) },
     { id: '2', title: '2.º cuatrimestre', topics: 'Ecuaciones · Inecuaciones · Función lineal · Estadística · Triángulos',
-      activities: activitySet('2A-c2', 2024, c2Modelo, c2Ex1, c2Ex2) },
+      activities: activitySet('2A-c2', 2026, c2Modelo, c2Ex1, c2Ex2) },
   ],
 }

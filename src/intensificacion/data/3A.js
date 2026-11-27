@@ -1,4 +1,4 @@
-// 3.er año. Las hojas no indican sección: se cargó como «A». «Modelo 2025» transcribe las hojas del profesor;
+// 3.er año. Las hojas no indican sección: se cargó como «A». «Modelo 2026» transcribe las hojas del profesor;
 // en el 2.º cuatrimestre el problema 5 (barril) se reemplazó por estadística.
 import { calc, item, num, activitySet } from './builders'
 import { trapezoidExercise, specialProducts, rootPoint, ineqPair, radical, system, linesExercise, ungroupedExercise, groupedExercise } from './builders3'
@@ -200,8 +200,8 @@ const c2Ex2 = [
 export const SECTION_3A = {
   terms: [
     { id: '1', title: '1.er cuatrimestre', topics: 'Cálculos combinados · Ecuaciones · Perímetro y área · Productos especiales · Recta numérica',
-      activities: activitySet('3A-c1', 2025, c1Modelo, c1Ex1, c1Ex2) },
+      activities: activitySet('3A-c1', 2026, c1Modelo, c1Ex1, c1Ex2) },
     { id: '2', title: '2.º cuatrimestre', topics: 'Inecuaciones · Radicales · Sistemas · Ecuación de la recta · Estadística',
-      activities: activitySet('3A-c2', 2025, c2Modelo, c2Ex1, c2Ex2) },
+      activities: activitySet('3A-c2', 2026, c2Modelo, c2Ex1, c2Ex2) },
   ],
 }

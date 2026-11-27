@@ -5,6 +5,7 @@ import Rich from '../../shared/Rich'
 import { XYChart } from './Charts'
 import { Plane, TriangleFigure, NumberLine, Trapezoid } from './Geometry'
 import { fieldsOf } from './check'
+import { FunctionGraph } from './Graphs'
 
 const Line = ({ label, unit }) => (
   <p className="p-line"><span><Rich text={label} /></span><i />{unit && <b>{unit}</b>}</p>
@@ -16,6 +17,10 @@ const paperText = (text) => text
   .replace(' Elegí cada recta y tocá dos de sus puntos en el plano.', '')
   .replace(' Tocá la recta y ajustá con los botones − y +.', '')
   .replace(' Ubicá el extremo, elegí el tipo de punto y hacia dónde se sombrea.', '')
+  .replace('Elegí el gráfico que corresponde a la función', 'Realizá el gráfico de la función')
+  .replace(' (la línea punteada es la asíntota)', ' y marcá la asíntota')
+  .replace(/ (Si no corta un eje, usá ∅\. |Si hay dos raíces, separalas con «;»; si no hay, usá ∅\.)/, ' ')
+  .replace(' (separados con «;»)', '')
     .replace(' Elegí las opciones y mirá cómo queda la construcción.', '')
   .replace(' Podés tocar el gráfico o usar los botones − y +.', '')
   .replace('escribí cuántos grados le corresponden a cada sector.', 'indicá cuántos grados le corresponden a cada sector y dibujalo.')
@@ -35,8 +40,8 @@ function PrintChart({ chart }) {
 }
 
 function PrintItem({ item }) {
-  const fields = item.table || item.chart || item.plane || item.axis ? [] : fieldsOf(item)
-  const needsSpace = fields.some((f) => ['poly', 'set', 'conj'].includes(f.kind))
+  const fields = item.table || item.chart || item.plane || item.axis || item.sketch ? [] : fieldsOf(item)
+  const needsSpace = fields.some((f) => ['poly', 'set', 'conj'].includes(f.kind) || (f.kind === 'numset' && !f.label))
   const isCalc = fields.length === 1 && fields[0].label === 'Resultado'
   const isAngle = fields[0]?.kind === 'angle'
   const isFactor = fields.some((f) => f.kind === 'factor')
@@ -56,6 +61,8 @@ function PrintItem({ item }) {
       )}
       {item.chart && <PrintChart chart={item.chart} />}
 
+      {item.graph && <div className="p-graph"><FunctionGraph graph={item.graph} /></div>}
+      {item.sketch && <div className="p-plane"><FunctionGraph graph={{ window: item.sketch.window, curves: [] }} /></div>}
       {item.shape && <div className="p-tri"><Trapezoid shape={item.shape} /></div>}
       {item.plane && <div className="p-plane"><Plane value="" disabled onChange={() => {}} /></div>}
       {item.axis && <div className="p-axis"><NumberLine field={item.axis} value="" disabled onChange={() => {}} /></div>}
@@ -64,7 +71,7 @@ function PrintItem({ item }) {
       {isCalc && <Line label="Resultado:" />}
       {isAngle && <p className="p-line"><span>Resultado:</span><i /><b>°</b><i /><b>′</b><i /><b>″</b></p>}
       {isFactor && <><div className="p-space" />{fields.map((f) => <Line key={f.key} label={f.aria} />)}</>}
-      {!isCalc && !isAngle && !isFactor && fields.map((f) => (f.kind === 'set' ? <Line key={f.key} label="S =" /> :
+      {!isCalc && !isAngle && !isFactor && fields.map((f) => (f.kind === 'set' || (f.kind === 'numset' && !f.label) ? <Line key={f.key} label="S =" /> :
         <Line key={f.key} label={/[?=]$/.test(f.label) ? f.label : `${f.label}:`} unit={null} />
       ))}
     </div>

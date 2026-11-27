@@ -4,9 +4,10 @@ import Dialog from '../../shared/Dialog'
 import Notice from '../../shared/Notice'
 import { storageAvailable } from '../../shared/storage'
 import { XYChart, PieChart } from './Charts'
+import { FunctionGraph, Sketches } from './Graphs'
 import { Plane, TriangleFigure, NumberLine, Trapezoid } from './Geometry'
 import Printable from './Printable'
-import { fieldsOf, isFieldOk, isFilled, isItemOk, linesOk, show } from './check'
+import { fieldsOf, isFieldOk, isFilled, isItemOk, linesOk, countedItems, isSkipped, show } from './check'
 
 const row0 = (item) => item.table.rows[0].length
 
@@ -42,7 +43,7 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
     )
   } else {
     // Teclas de ayuda para los símbolos difíciles de escribir en el celular.
-    const keys = { factor: ['×', '^'], poly: [field.v || 'x', '^', '+', '−'], conj: ['(', ')', field.v, '^', '+', '−', '/'], set: ['−', '/', '∅'] }[field.kind] || []
+    const keys = { factor: ['×', '^'], poly: [field.v || 'x', '^', '+', '−'], conj: ['(', ')', field.v, '^', '+', '−', '/'], set: ['−', '/', '∅'], numset: ['−', '/', ';', '∅'] }[field.kind] || []
     control = (
       <span className="inrow">
         {field.prefix && <b>{field.prefix}</b>}
@@ -58,7 +59,7 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
           <span className="keys">
             {keys.map((s) => (
               <button key={s} type="button" className="key" aria-label={`Agregar ${s}`}
-                onClick={(e) => { e.preventDefault(); onChange(s === '∅' ? s : (value || '') + s) }}>{s}</button>
+                onClick={(e) => { e.preventDefault(); onChange(s === '∅' ? s : String(value || '').replace('∅', '') + s) }}>{s}</button>
             ))}
           </span>
         </span>
@@ -66,7 +67,7 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
     }
   }
   if (compact) return control
-  const Tag = ['factor', 'poly', 'set', 'conj'].includes(field.kind) ? 'div' : 'label'
+  const Tag = ['factor', 'poly', 'set', 'numset', 'conj'].includes(field.kind) ? 'div' : 'label'
   return <Tag className="field">{label}{control}</Tag>
 }
 
@@ -85,10 +86,11 @@ export default function Activity({ activity, course, term }) {
     try { localStorage.setItem(storageKey, JSON.stringify(state)) } catch { /* sin almacenamiento */ }
   }, [storageKey, state])
 
-  const items = activity.exercises.flatMap((e) => e.items)
+  const items = activity.exercises.flatMap((e) => countedItems(e, values))
   const okCount = items.filter((i) => isItemOk(i, values)).length
   const checkedOk = items.filter((i) => checked[i.id] && isItemOk(i, values)).length
-  const pending = items.filter((i) => !fieldsOf(i).every((f) => isFilled(values[f.key]))).length
+  const pending = activity.exercises.flatMap((e) => countedItems(e, values, 'filled'))
+    .filter((i) => !fieldsOf(i).every((f) => isFilled(values[f.key]))).length
 
   const change = (item, key, v) => setState((s) => (s.submitted ? s : {
     ...s, values: { ...s.values, [key]: v }, checked: { ...s.checked, [item.id]: false },
@@ -120,8 +122,9 @@ export default function Activity({ activity, course, term }) {
     </button>
   )
 
-  const renderItem = (item) => {
-    const reveal = exam ? submitted : !!checked[item.id]
+  const renderItem = (item, exercise) => {
+    const skipped = exam && submitted && isSkipped(exercise, item, values)
+    const reveal = !skipped && (exam ? submitted : !!checked[item.id])
     const ok = reveal && isItemOk(item, values)
     const markOf = (f) => (reveal ? isFieldOk(f, values[f.key]) : undefined)
     const wrong = reveal ? fieldsOf(item).filter((f) => !isFieldOk(f, values[f.key])) : []
@@ -129,6 +132,7 @@ export default function Activity({ activity, course, term }) {
       <article key={item.id} id={`it-${item.id}`} className="card" aria-label={`Ítem ${item.id}`}>
         <header className="card-head">
           <span className="qnum">{item.id}</span>
+          {skipped && <span className="pill">No elegido</span>}
           {reveal && <span className={`badge ${ok ? 'good' : 'bad'}`}><span aria-hidden="true">{ok ? '✓' : '!'}</span>{ok ? 'Correcto' : 'A revisar'}</span>}
         </header>
         {item.prompt && <p className="prompt"><Rich text={item.prompt} /></p>}
@@ -136,6 +140,8 @@ export default function Activity({ activity, course, term }) {
         {item.figure && <TriangleFigure figure={item.figure} choices={item.fields.map((f) => values[f.key])} />}
 
         {item.shape && <Trapezoid shape={item.shape} />}
+        {item.graph && <FunctionGraph graph={item.graph} />}
+        {item.sketch && <Sketches sketch={item.sketch} value={values[item.sketch.key]} disabled={submitted} mark={markOf(item.sketch)} onChange={(v) => change(item, item.sketch.key, v)} />}
 
         {item.plane && <Plane value={values[item.plane.key]} disabled={submitted} mark={markOf(item.plane)} onChange={(v) => change(item, item.plane.key, v)}
           names={item.plane.names} marks={reveal && item.plane.names ? linesOk(values[item.plane.key], item.plane) : undefined} />}
@@ -215,7 +221,7 @@ export default function Activity({ activity, course, term }) {
             : <Notice tone="info">Abrí «Ver desarrollo paso a paso» en los ítems marcados para repasar cómo se resuelven.</Notice>}
           <ul className="breakdown">
             {activity.exercises.map((e) => (
-              <li key={e.n} className="brow"><span>Ej. {e.n} · {e.title}</span><strong>{e.items.filter((i) => isItemOk(i, values)).length}/{e.items.length}</strong></li>
+              <li key={e.n} className="brow"><span>Ej. {e.n} · {e.title}</span><strong>{countedItems(e, values).filter((i) => isItemOk(i, values)).length}/{countedItems(e, values).length}</strong></li>
             ))}
           </ul>
         </section>
@@ -239,7 +245,7 @@ export default function Activity({ activity, course, term }) {
         <section key={e.n} className="section">
           <h2><span>Ejercicio {e.n}</span> {e.title}</h2>
           {e.statement && <div className="card statement"><p className="prompt"><Rich text={e.statement} /></p>{e.data && <p className="rawdata">{e.data}</p>}</div>}
-          {e.items.map(renderItem)}
+          {e.items.map((item) => renderItem(item, e))}
         </section>
       ))}
 

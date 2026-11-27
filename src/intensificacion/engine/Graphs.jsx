@@ -43,11 +43,14 @@ export function FunctionGraph({ graph, small }) {
         {ints(y0 + 1, y1 - 1).filter((y) => y && y % everyY === 0).map((y) => <text key={y} x={px(0) - 4} y={py(y) + 4} textAnchor="end">{y}</text>)}
       </g>
       <g clipPath={`url(#${clip})`} fill="none">
-        {graph.asymptote && (graph.asymptote.x !== undefined
-          ? <line x1={px(graph.asymptote.x)} x2={px(graph.asymptote.x)} y1="0" y2={H} stroke="#b86e00" strokeDasharray="6 4" strokeWidth="1.5" />
-          : <line x1="0" x2={W} y1={py(graph.asymptote.y)} y2={py(graph.asymptote.y)} stroke="#b86e00" strokeDasharray="6 4" strokeWidth="1.5" />)}
+        {[...(graph.asymptote ? [graph.asymptote] : []), ...(graph.asymptotes || [])].map((a, i) => (a.x !== undefined
+          ? <line key={`a${i}`} x1={px(a.x)} x2={px(a.x)} y1="0" y2={H} stroke="#b86e00" strokeDasharray="6 4" strokeWidth="1.5" />
+          : <line key={`a${i}`} x1="0" x2={W} y1={py(a.y)} y2={py(a.y)} stroke="#b86e00" strokeDasharray="6 4" strokeWidth="1.5" />))}
         {graph.curves.map((c, i) => <path key={i} d={path(c.f)} stroke={c.color || '#2c5282'} strokeWidth={small ? 3 : 2} />)}
       </g>
+      {(graph.dots || []).map((d, i) => (
+        <circle key={`d${i}`} cx={px(d.x)} cy={py(d.y)} r={small ? 5 : 4.5} fill={d.open ? '#fff' : '#c0392b'} stroke="#c0392b" strokeWidth="2" />
+      ))}
       {graph.curves.filter((c) => c.label).map((c) => (
         <text key={c.label} x={px(c.at[0])} y={py(c.at[1])} fontSize="14" fontWeight="700" fill={c.color}>{c.label}</text>
       ))}

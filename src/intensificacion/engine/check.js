@@ -1,3 +1,4 @@
+import { exprEqual, parseLimit } from './expr'
 // Corrección de respuestas escritas.
 
 // Número en formato argentino: «3.902,35», «0,5», «23/12», «$ 40», «15%», «90°». Devuelve null si no se entiende.
@@ -117,6 +118,11 @@ function isNumberSet(raw, field) {
 
 // Un «campo» es cada casillero que el alumno completa.
 export function isFieldOk(field, value) {
+  if (field.kind === 'expr') return exprEqual(value, field.answer, { antiderivative: field.antiderivative, points: field.points })
+  if (field.kind === 'limit') {
+    const got = parseLimit(value, parseNumber), want = typeof field.answer === 'number' || /\d/.test(String(field.answer)) ? parseNumber(String(field.answer)) : field.answer
+    return typeof want === 'number' ? same(got, want, field.tol ? field.tol + 1e-9 : 1e-9) && typeof got === 'number' : got === want
+  }
   if (field.kind === 'select' || field.kind === 'sketch') return value === field.answer
   if (field.kind === 'numset') return isNumberSet(value, field)
   if (field.kind === 'poly') return samePoly(parsePoly(value, field.v), parsePoly(field.answer, field.v))
@@ -180,12 +186,14 @@ export function isSkipped(exercise, item, values) {
 
 export const show = (field) => {
   const es = (v) => String(v).replace('.', ',')
+  if (field.kind === 'expr') return field.display || field.answer.replace(/\^(\d)/g, (_, d) => SUP[d]).replace(/\*/g, '·')
+  if (field.kind === 'limit') return field.display || (field.answer === 'inf' ? '+∞' : field.answer === '-inf' ? '−∞' : field.answer === 'dne' ? 'no existe' : field.tol ? `≈ ${es(field.answer)}` : es(field.answer).replace('-', '−'))
   if (field.kind === 'numset') return field.answer === '∅' ? '∅' : `{${field.answer.map(es).join(' ; ')}}`
   if (field.kind === 'sketch') return `gráfico ${field.answer}`
   if (field.kind === 'num' && field.tol) return `≈ ${es(field.answer)}`
   if (field.kind === 'angle') return `${field.answer[0]}° ${field.answer[1]}′ ${field.answer[2]}″`
   if (field.kind === 'factor') return factorText(field.answer)
-  if (field.kind === 'line') return `la recta que pasa por (0 ; ${field.b}) y (1 ; ${field.m + field.b})`
+  if (field.kind === 'line') return field.display || `la recta que pasa por (0 ; ${field.b}) y (1 ; ${field.m + field.b})`
   if (field.kind === 'lines') return field.names.join(', ') + ' como indica el desarrollo'
   if (field.kind === 'conj') return field.factors.map((f) => `(${f.replace(/\^(\d)/g, (_, d) => SUP[d])})`).join('')
   if (field.kind === 'point') return `en ${String(Math.round(field.value * 10) / 10).replace('.', ',')} (aproximadamente)`

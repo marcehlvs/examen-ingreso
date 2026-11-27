@@ -43,7 +43,7 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
     )
   } else {
     // Teclas de ayuda para los símbolos difíciles de escribir en el celular.
-    const keys = { factor: ['×', '^'], poly: [field.v || 'x', '^', '+', '−'], conj: ['(', ')', field.v, '^', '+', '−', '/'], set: ['−', '/', '∅'], numset: ['−', '/', ';', '∅'] }[field.kind] || []
+    const keys = { factor: ['×', '^'], poly: [field.v || 'x', '^', '+', '−'], conj: ['(', ')', field.v, '^', '+', '−', '/'], set: ['−', '/', '∅'], numset: ['−', '/', ';', '∅'], expr: ['x', '^', '(', ')', '/'], limit: ['+∞', '−∞', '−', '/', 'no existe'] }[field.kind] || []
     control = (
       <span className="inrow">
         {field.prefix && <b>{field.prefix}</b>}
@@ -59,7 +59,7 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
           <span className="keys">
             {keys.map((s) => (
               <button key={s} type="button" className="key" aria-label={`Agregar ${s}`}
-                onClick={(e) => { e.preventDefault(); onChange(s === '∅' ? s : String(value || '').replace('∅', '') + s) }}>{s}</button>
+                onClick={(e) => { e.preventDefault(); onChange(s === '∅' || s === 'no existe' ? s : String(value || '').replace('∅', '').replace('no existe', '') + s) }}>{s}</button>
             ))}
           </span>
         </span>
@@ -67,7 +67,7 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
     }
   }
   if (compact) return control
-  const Tag = ['factor', 'poly', 'set', 'numset', 'conj'].includes(field.kind) ? 'div' : 'label'
+  const Tag = ['factor', 'poly', 'set', 'numset', 'conj', 'expr', 'limit'].includes(field.kind) ? 'div' : 'label'
   return <Tag className="field">{label}{control}</Tag>
 }
 

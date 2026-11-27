@@ -5,6 +5,7 @@ import { SECTION_1A } from './1A'
 import { SECTION_2A } from './2A'
 import { SECTION_3A } from './3A'
 import { SECTION_5A } from './5A'
+import { SECTION_6A } from './6A'
 
 export const COURSES = [
   { id: '1', title: '1.er año', sections: { A: SECTION_1A } },
@@ -12,5 +13,5 @@ export const COURSES = [
   { id: '3', title: '3.er año', sections: { A: SECTION_3A } },
   { id: '4', title: '4.º año', sections: {} },
   { id: '5', title: '5.º año', sections: { A: SECTION_5A } },
-  { id: '6', title: '6.º año', sections: {} },
+  { id: '6', title: '6.º año', sections: { A: SECTION_6A } },
 ]

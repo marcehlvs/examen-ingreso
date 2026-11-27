@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Empty from '../shared/Empty'
+import { Chart } from '../shared/Icons'
 import Dialog from '../shared/Dialog'
 import { SECTIONS } from './examData'
 import { getStats, weakSections, clearStats } from './studentStats'
@@ -18,7 +19,7 @@ export default function Stats({ onStart }) {
 
   if (st.total === 0) {
     return (
-      <Empty icon="📊" title="Todavía no hay estadísticas"
+      <Empty icon={<Chart />} title="Todavía no hay estadísticas"
         action={onStart && <button type="button" className="btn" onClick={onStart}>Ir al examen</button>}>
         Resolvé y corregí un examen y acá vas a ver tus aciertos por ejercicio.
       </Empty>

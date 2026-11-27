@@ -1,6 +1,7 @@
 import { COURSES } from './data/courses'
 import Activity from './engine/Activity'
 import Empty from '../shared/Empty'
+import { Compass } from '../shared/Icons'
 
 const BASE = '#/intensificacion'
 
@@ -33,7 +34,7 @@ export default function Intensificacion({ rest = [] }) {
   // Error: la dirección no existe (enlace viejo o mal escrito).
   if (courseId && !(activity || section)) {
     return (
-      <Empty icon="🧭" title="No encontramos esa página"
+      <Empty icon={<Compass />} title="No encontramos esa página"
         action={<a className="btn" href={BASE}>Ver todos los cursos</a>}>
         El enlace puede estar incompleto o el material todavía no está cargado.
       </Empty>

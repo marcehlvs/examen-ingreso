@@ -31,7 +31,10 @@ export default function App() {
       <a className="skip" href="#contenido" onClick={(e) => { e.preventDefault(); main.current?.focus() }}>Saltar al contenido</a>
       <div className="nav-wrap">
         <nav className="nav" aria-label="Secciones">
-          <a href="#/" aria-current={!section ? 'page' : undefined}>Inicio</a>
+          <a className="brand" href="#/" aria-label="Inicio" aria-current={!section ? 'page' : undefined}>
+            <span className="brand-mark" aria-hidden="true">x²</span>
+            <span className="brand-name">Matemática</span>
+          </a>
           {SECTIONS.map((s) => (
             <a key={s.path} href={`#/${s.path}`} aria-current={section === s ? 'page' : undefined} aria-label={s.label}>
               <span className="nav-full">{s.label}</span><span className="nav-short" aria-hidden="true">{s.short || s.label}</span>

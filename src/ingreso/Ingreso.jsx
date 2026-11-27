@@ -4,6 +4,7 @@ import Rich from '../shared/Rich'
 import Dialog from '../shared/Dialog'
 import Notice from '../shared/Notice'
 import Empty from '../shared/Empty'
+import { Timer, Chart, Party } from '../shared/Icons'
 import { storageAvailable } from '../shared/storage'
 import Figura from './Figura'
 import Figura2 from './Figura2'
@@ -235,11 +236,11 @@ export default function Ingreso() {
         <div className="hero-actions">
           {!showStats && !submitted && !startedAt && (
             <button type="button" className="btn" onClick={() => { setNow(Date.now()); setStartedAt(Date.now()) }}>
-              <span aria-hidden="true">⏱</span> Iniciar cronómetro ({minutesFor(mode)} min)
+              <Timer /> Iniciar cronómetro ({minutesFor(mode)} min)
             </button>
           )}
           <button type="button" className="btn ghost" disabled={!!timerRunning} onClick={() => setShowStats((v) => !v)}>
-            {showStats ? '← Volver al examen' : <><span aria-hidden="true">📊</span> Mis estadísticas</>}
+            {showStats ? '← Volver al examen' : <><Chart /> Mis estadísticas</>}
           </button>
         </div>
 
@@ -285,7 +286,7 @@ export default function Ingreso() {
       )}
 
       {submitted && onlyWrong && bySection.every((sec) => sec.qs.every(isCorrect)) && (
-        <Empty icon="🎉" title="No hay respuestas incorrectas"
+        <Empty icon={<Party />} title="No hay respuestas incorrectas"
           action={<button type="button" className="btn ghost" onClick={() => setOnlyWrong(false)}>Ver todas las preguntas</button>}>
           Acertaste todas las preguntas de este examen.
         </Empty>

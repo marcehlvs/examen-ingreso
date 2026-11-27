@@ -449,7 +449,7 @@ main:focus, main:focus-visible { outline: none; }
 input.ok, select.ok { border-color: var(--ok) !important; background: var(--ok-bg) !important; }
 input.no, select.no { border-color: var(--no) !important; background: var(--no-bg) !important; }
 .withkeys { display: grid; gap: var(--s-2); }
-.keys { display: flex; gap: var(--s-2); }
+.keys { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .key {
   flex: none; min-width: var(--tap); min-height: var(--tap); border-radius: var(--r-sm); border: var(--bw-2) solid var(--border-strong);
   background: var(--surface-3); font-size: var(--fs-lg); font-weight: 700; color: var(--primary); cursor: pointer;
@@ -474,6 +474,17 @@ input.no, select.no { border-color: var(--no) !important; background: var(--no-b
 }
 .chart.pie { max-width: 220px; cursor: default; border: 0; background: none; margin-bottom: var(--s-2); }
 .chart.plane { max-width: 360px; }
+.chart.axis { max-width: 460px; }
+.segmented { display: flex; flex-wrap: wrap; gap: var(--s-2); justify-content: center; margin: var(--s-2) 0; }
+.seg {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2); min-height: var(--tap); padding: 0 var(--s-3);
+  border: var(--bw-2) solid var(--border-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--text);
+  font: inherit; font-size: var(--fs-sm); font-weight: 700; cursor: pointer;
+}
+.seg[aria-pressed='true'] { border-color: var(--primary); background: var(--primary-soft); box-shadow: inset 0 0 0 1px var(--primary); }
+.swatch { width: 12px; height: 12px; border-radius: 50%; }
+.axis-move { display: flex; align-items: center; justify-content: center; gap: var(--s-3); margin-top: var(--s-2); }
+.axis-move output { min-width: 11ch; text-align: center; font-size: var(--fs-sm); font-weight: 700; }
 .chart.tri { max-width: 340px; cursor: default; margin-bottom: var(--s-3); }
 @media (min-width: 768px) { .chart { max-width: 460px; } .chart.plane { max-width: 400px; } }
 .axis-title { margin: 0 0 var(--s-1); font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); }
@@ -546,4 +557,9 @@ input.no, select.no { border-color: var(--no) !important; background: var(--no-b
   .p-plane .chart, .p-tri .chart { max-width: none; background: none; border: 0; }
   .p-plane .grid line { stroke: #999; }
   .p-tri { width: 100mm; margin: 4px auto 0; }
+}
+
+@media print {
+  .p-axis { width: 150mm; margin: 4px auto 0; }
+  .p-axis .chart { max-width: none; background: none; border: 0; }
 }

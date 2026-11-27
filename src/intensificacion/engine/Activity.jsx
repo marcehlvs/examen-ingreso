@@ -4,9 +4,9 @@ import Dialog from '../../shared/Dialog'
 import Notice from '../../shared/Notice'
 import { storageAvailable } from '../../shared/storage'
 import { XYChart, PieChart } from './Charts'
-import { Plane, TriangleFigure } from './Geometry'
+import { Plane, TriangleFigure, NumberLine, Trapezoid } from './Geometry'
 import Printable from './Printable'
-import { fieldsOf, isFieldOk, isFilled, isItemOk, show } from './check'
+import { fieldsOf, isFieldOk, isFilled, isItemOk, linesOk, show } from './check'
 
 const row0 = (item) => item.table.rows[0].length
 
@@ -42,7 +42,7 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
     )
   } else {
     // Teclas de ayuda para los símbolos difíciles de escribir en el celular.
-    const keys = { factor: ['×', '^'], poly: ['x', '^', '+', '−'], set: ['−', '/', '∅'] }[field.kind] || []
+    const keys = { factor: ['×', '^'], poly: [field.v || 'x', '^', '+', '−'], conj: ['(', ')', field.v, '^', '+', '−', '/'], set: ['−', '/', '∅'] }[field.kind] || []
     control = (
       <span className="inrow">
         {field.prefix && <b>{field.prefix}</b>}
@@ -66,7 +66,7 @@ function Field({ field, value, onChange, disabled, mark, compact }) {
     }
   }
   if (compact) return control
-  const Tag = ['factor', 'poly', 'set'].includes(field.kind) ? 'div' : 'label'
+  const Tag = ['factor', 'poly', 'set', 'conj'].includes(field.kind) ? 'div' : 'label'
   return <Tag className="field">{label}{control}</Tag>
 }
 
@@ -135,7 +135,12 @@ export default function Activity({ activity, course, term }) {
 
         {item.figure && <TriangleFigure figure={item.figure} choices={item.fields.map((f) => values[f.key])} />}
 
-        {item.plane && <Plane value={values[item.plane.key]} disabled={submitted} mark={markOf(item.plane)} onChange={(v) => change(item, item.plane.key, v)} />}
+        {item.shape && <Trapezoid shape={item.shape} />}
+
+        {item.plane && <Plane value={values[item.plane.key]} disabled={submitted} mark={markOf(item.plane)} onChange={(v) => change(item, item.plane.key, v)}
+          names={item.plane.names} marks={reveal && item.plane.names ? linesOk(values[item.plane.key], item.plane) : undefined} />}
+
+        {item.axis && <NumberLine field={item.axis} value={values[item.axis.key]} disabled={submitted} mark={markOf(item.axis)} onChange={(v) => change(item, item.axis.key, v)} />}
 
         {item.fields && (
           <div className="fields">

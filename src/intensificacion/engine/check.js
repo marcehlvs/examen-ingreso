@@ -43,16 +43,20 @@ export function isFactorization(raw, n) {
 
 // Polinomio reducido en x, en cualquier orden: «4x^4+7x^3-2x^2-5x», «x³ − 5x² + 6x», «6 - 3x».
 // Devuelve {grado: coeficiente}, o null si no se entiende o quedan términos semejantes sin reducir.
-export function parsePoly(raw) {
-  const s = String(raw ?? '')
+export function parsePoly(raw, variable = 'x') {
+  let s = String(raw ?? '')
     .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]+/g, (m) => '^' + [...m].map((c) => SUP.indexOf(c)).join(''))
-    .replace(/[\s·*]/g, '').replace(/−/g, '-').toLowerCase().replace(/^y=/, '')
+    .replace(/[\s·*]/g, '').replace(/−/g, '-').toLowerCase().replace(/^y=/, '').replace(/\((-?\d+\/\d+)\)/g, '$1')
+  if (variable !== 'x') {
+    if (s.includes('x')) return null
+    s = s.split(variable).join('x')
+  }
   if (!s || !/^[+-]?[^+-]+([+-][^+-]+)*$/.test(s)) return null
   const out = {}
   for (const term of s.match(/[+-]?[^+-]+/g)) {
-    const m = term.match(/^([+-])?(\d+(?:[.,]\d+)?(?:\/\d+)?)?(x(?:\^(\d+))?)?$/)
+    const m = term.match(/^([+-])?(\d+(?:[.,]\d+)?(?:\/\d+)?)?(x(?:\^(\d+))?(?:\/(\d+))?)?$/)
     if (!m || (m[2] === undefined && !m[3])) return null
-    const coef = (m[1] === '-' ? -1 : 1) * (m[2] === undefined ? 1 : parseNumber(m[2]))
+    const coef = ((m[1] === '-' ? -1 : 1) * (m[2] === undefined ? 1 : parseNumber(m[2]))) / (m[5] ? Number(m[5]) : 1)
     const deg = m[3] ? (m[4] === undefined ? 1 : Number(m[4])) : 0
     if (deg in out) return null
     out[deg] = coef
@@ -63,6 +67,34 @@ export function parsePoly(raw) {
 const samePoly = (a, b) => {
   if (!a || !b) return false
   return [...new Set([...Object.keys(a), ...Object.keys(b)])].every((d) => Math.abs((a[d] || 0) - (b[d] || 0)) < 1e-9)
+}
+
+// Diferencia de cuadrados escrita como producto de dos binomios conjugados, en cualquier orden.
+function isConjugates(raw, field) {
+  const s = String(raw ?? '').replace(/\s/g, '').replace(/\((-?\d+\/\d+)\)/g, '$1')
+  const m = s.match(/^\(([^()]+)\)[·*×.]?\(([^()]+)\)$/)
+  if (!m) return false
+  const got = [m[1], m[2]].map((t) => parsePoly(t, field.v))
+  const [a, b] = field.factors.map((t) => parsePoly(t, field.v))
+  const neg = (q) => Object.fromEntries(Object.entries(q).map(([d, c]) => [d, -c]))
+  return [[a, b], [neg(a), neg(b)]].some(([x, y]) =>
+    (samePoly(got[0], x) && samePoly(got[1], y)) || (samePoly(got[0], y) && samePoly(got[1], x)))
+}
+
+// Recta numérica con solución de una inecuación: «extremo|c u a (cerrado o abierto)|izq o der».
+export const parseRay = (raw) => {
+  const [end = '', closed = '', dir = ''] = String(raw || '').split('|')
+  return { end, closed, dir }
+}
+
+const isLine = (raw, { m, b }) => {
+  const pts = parsePoints(raw)
+  return pts.length === 2 && (pts[0][0] !== pts[1][0] || pts[0][1] !== pts[1][1])
+    && pts.every(([x, y]) => Math.abs(m * x + b - y) < 1e-9)
+}
+export const linesOk = (raw, field) => {
+  const sets = String(raw || '').split('|')
+  return field.lines.map((l, i) => isLine(sets[i], l))
 }
 
 // Conjunto solución: «vacio» (∅) o el único número que lo forma.
@@ -76,12 +108,18 @@ const same = (a, b) => a !== null && Math.abs(a - b) < 1e-9
 // Un «campo» es cada casillero que el alumno completa.
 export function isFieldOk(field, value) {
   if (field.kind === 'select') return value === field.answer
-  if (field.kind === 'poly') return samePoly(parsePoly(value), parsePoly(field.answer))
+  if (field.kind === 'poly') return samePoly(parsePoly(value, field.v), parsePoly(field.answer, field.v))
   if (field.kind === 'set') return field.answer === '∅' ? isEmptySet(value) : same(parseNumber(value), parseNumber(field.answer))
-  if (field.kind === 'line') {
-    const pts = parsePoints(value)
-    return pts.length === 2 && (pts[0][0] !== pts[1][0] || pts[0][1] !== pts[1][1])
-      && pts.every(([x, y]) => Math.abs(field.m * x + field.b - y) < 1e-9)
+  if (field.kind === 'line') return isLine(value, field)
+  if (field.kind === 'lines') return linesOk(value, field).every(Boolean)
+  if (field.kind === 'conj') return isConjugates(value, field)
+  if (field.kind === 'point') {
+    const v = parseNumber(value)
+    return v !== null && Math.abs(v - field.value) <= 0.15
+  }
+  if (field.kind === 'ray') {
+    const r = parseRay(value), end = parseNumber(r.end)
+    return end !== null && Math.abs(end - field.end) < 0.01 && r.closed === (field.closed ? 'c' : 'a') && r.dir === field.dir
   }
   if (field.kind === 'factor') return isFactorization(value, field.answer)
   if (field.kind === 'angle') {
@@ -98,6 +136,7 @@ export const isFilled = (value) =>
 // Todos los campos de un ítem, vengan de una lista, una tabla o un gráfico.
 export function fieldsOf(item) {
   if (item.plane) return [item.plane]
+  if (item.axis) return [item.axis]
   if (item.table) return item.table.rows.flat().filter((c) => typeof c === 'object')
   if (item.chart) return item.chart.points.filter((p) => !p.fixed)
   return item.fields
@@ -109,6 +148,10 @@ export const show = (field) => {
   if (field.kind === 'angle') return `${field.answer[0]}° ${field.answer[1]}′ ${field.answer[2]}″`
   if (field.kind === 'factor') return factorText(field.answer)
   if (field.kind === 'line') return `la recta que pasa por (0 ; ${field.b}) y (1 ; ${field.m + field.b})`
+  if (field.kind === 'lines') return field.names.join(', ') + ' como indica el desarrollo'
+  if (field.kind === 'conj') return field.factors.map((f) => `(${f.replace(/\^(\d)/g, (_, d) => SUP[d])})`).join('')
+  if (field.kind === 'point') return `en ${String(Math.round(field.value * 10) / 10).replace('.', ',')} (aproximadamente)`
+  if (field.kind === 'ray') return `${field.closed ? 'punto lleno' : 'punto hueco'} en ${field.label2}, sombreado hacia la ${field.dir === 'izq' ? 'izquierda' : 'derecha'}`
   if (field.kind === 'poly') return field.answer.replace(/\^(\d)/g, (_, d) => SUP[d])
   if (field.kind === 'set') return field.answer === '∅' ? 'S = ∅' : `S = {${field.answer}}`
   return String(field.answer)

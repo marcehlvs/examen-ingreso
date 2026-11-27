@@ -66,7 +66,7 @@ function PrintItem({ item }) {
       {item.sketch && <div className="p-plane"><FunctionGraph graph={{ window: item.sketch.window, curves: [] }} /></div>}
       {item.shape && <div className="p-tri"><Trapezoid shape={item.shape} /></div>}
       {item.plane && <div className="p-plane"><Plane value="" disabled onChange={() => {}} /></div>}
-      {item.axis && <div className="p-axis"><NumberLine field={item.axis} value="" disabled onChange={() => {}} /></div>}
+      {item.axis && <div className={`p-axis ${item.axis.kind === 'point' ? 'p-axis-build' : ''}`}><NumberLine field={item.axis} value="" disabled onChange={() => {}} /></div>}
       {item.figure && <div className="p-tri"><TriangleFigure figure={item.figure} choices={[]} /></div>}
       {fields.length > 0 && !isFactor && <div className="p-space" />}
       {item.paperBlank ? null
@@ -81,9 +81,15 @@ function PrintItem({ item }) {
 export default function Printable({ activity, course, term }) {
   return createPortal(
     <div className="printable">
-      <h1>Intensificación en Matemática</h1>
-      <p className="p-credit">Prof. Juan Marcelo Bejarano</p>
-      <h2>{course} · {term} · {activity.title}</h2>
+     <p className="p-foot">Prof. Juan Marcelo Bejarano · Intensificación en Matemática</p>
+     <table className="p-wrap">
+      <thead><tr><td><div className="p-gap" /></td></tr></thead>
+      <tfoot><tr><td><div className="p-gap" /></td></tr></tfoot>
+      <tbody><tr><td><div className="p-body">
+      <div className="p-head">
+        <h1>Intensificación en Matemática</h1>
+        <h2>{course} · {term} · {activity.title}</h2>
+      </div>
       <div className="p-student"><Line label="Nombre y apellido:" /><Line label="Fecha:" /></div>
       {(activity.sheet || activity.exercises).map((e) => (
         <section key={e.n}>
@@ -102,6 +108,8 @@ export default function Printable({ activity, course, term }) {
           ))}
         </section>
       ))}
+      </div></td></tr></tbody>
+     </table>
     </div>,
     document.body,
   )

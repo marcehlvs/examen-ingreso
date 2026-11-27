@@ -42,6 +42,21 @@ export const rootPoint = (id, expr, value, steps) => ({
   axis: { kind: 'point', key: `${id}-p`, value, aria: 'Posición:' }, steps,
 })
 
+// Irracional √(a² + b²) como hipotenusa de un triángulo rectángulo de catetos a y b (a y b enteros).
+// Devuelve [expresión en TeX, valor, pasos] para usar con rootPoint. neg = true ubica el opuesto (−√n).
+export const rootArgs = (a, b, neg = false) => {
+  const n = a * a + b * b, value = Math.sqrt(n)
+  const approx = value.toFixed(2).replace('.', '{,}')
+  return [
+    `${neg ? '-' : ''}\\sqrt{${n}}`, neg ? -value : value,
+    [
+      `$${n} = ${a}^2 + ${b}^2$: se construye un triángulo rectángulo de base $${a}$ y altura $${b}$, con la base apoyada sobre la recta y un extremo en el 0.`,
+      `Por el teorema de Pitágoras, su hipotenusa mide $\\sqrt{${a}^2 + ${b}^2} = \\sqrt{${n}}$.`,
+      `Con el compás: se apoya la punta en el 0, se abre hasta la medida de la hipotenusa y se traza un arco que corte la recta hacia la ${neg ? 'izquierda' : 'derecha'}. Ese punto es $${neg ? '-' : ''}\\sqrt{${n}} \\approx ${neg ? '-' : ''}${approx}$.`,
+    ],
+  ]
+}
+
 // Inecuación: primero la solución y después su representación. end es un número y shown, su escritura.
 export function ineqPair(letter, expr, op, shown, end, steps) {
   const closed = op === 'x ≤' || op === 'x ≥', dir = op === 'x <' || op === 'x ≤' ? 'izq' : 'der'

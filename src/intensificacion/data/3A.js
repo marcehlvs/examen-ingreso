@@ -1,7 +1,7 @@
 // 3.er año. Las hojas no indican sección: se cargó como «A». «Modelo 2026» transcribe las hojas del profesor;
 // en el 2.º cuatrimestre el problema 5 (barril) se reemplazó por estadística.
 import { calc, item, num, activitySet } from './builders'
-import { trapezoidExercise, specialProducts, rootPoint, ineqPair, radical, system, linesExercise, ungroupedExercise, groupedExercise } from './builders3'
+import { trapezoidExercise, specialProducts, rootPoint, rootArgs, ineqPair, radical, system, linesExercise, ungroupedExercise, groupedExercise } from './builders3'
 
 const r = String.raw
 
@@ -40,9 +40,8 @@ const c1Modelo = [
     [r`16p^4 - \frac{4}{25}p^2`, ['4p^2+2/5p', '4p^2-2/5p'], 'p', [r`$a^2 - b^2 = (a + b) \cdot (a - b)$.`, r`$a = \sqrt{16p^4} = 4p^2$ y $b = \sqrt{\frac{4}{25}p^2} = \frac{2}{5}p$.`,
       r`$\left(4p^2 + \frac{2}{5}p\right) \cdot \left(4p^2 - \frac{2}{5}p\right)$.`]]),
   roots(
-    [r`-\sqrt{5}`, -Math.sqrt(5), [r`$5 = 2^2 + 1^2$: se arma un triángulo rectángulo de catetos 2 y 1. Su hipotenusa mide $\sqrt{5}$.`, r`Con el compás se lleva esa medida desde el 0 hacia la izquierda: $-\sqrt{5} \approx -2{,}24$.`]],
-    [r`\sqrt{12}`, Math.sqrt(12), [r`$12 = 4^2 - 2^2$: triángulo rectángulo con un cateto de 2 sobre el 2 de la altura e hipotenusa de 4. El otro cateto mide $\sqrt{12}$.`,
-      r`También: $12 = 3^2 + (\sqrt{3})^2$. Con el compás se lleva desde el 0 hacia la derecha: $\sqrt{12} \approx 3{,}46$.`]],
+    rootArgs(2, 1, true),
+    rootArgs(4, 1),
   ),
 ]
 
@@ -62,8 +61,8 @@ const c1Ex1 = [
     [r`(-5m^2 + 2m^3)^2`, '4m^6-20m^5+25m^4', 'm', [r`$(-5m^2)^2 + 2 \cdot (-5m^2) \cdot 2m^3 + (2m^3)^2 = 25m^4 - 20m^5 + 4m^6$.`]],
     [r`25a^4 - \frac{9}{16}a^2`, ['5a^2+3/4a', '5a^2-3/4a'], 'a', [r`Las bases son $5a^2$ y $\frac{3}{4}a$.`, r`$\left(5a^2 + \frac{3}{4}a\right) \cdot \left(5a^2 - \frac{3}{4}a\right)$.`]]),
   roots(
-    [r`-\sqrt{10}`, -Math.sqrt(10), [r`$10 = 3^2 + 1^2$: catetos 3 y 1. La hipotenusa se lleva desde el 0 hacia la izquierda: $-\sqrt{10} \approx -3{,}16$.`]],
-    [r`\sqrt{8}`, Math.sqrt(8), [r`$8 = 2^2 + 2^2$: catetos 2 y 2. La hipotenusa se lleva desde el 0 hacia la derecha: $\sqrt{8} \approx 2{,}83$.`]],
+    rootArgs(3, 1, true),
+    rootArgs(2, 2),
   ),
 ]
 
@@ -83,8 +82,8 @@ const c1Ex2 = [
     [r`(-4k^5 + 6k^2)^2`, '16k^10-48k^7+36k^4', 'k', [r`$(-4k^5)^2 + 2 \cdot (-4k^5) \cdot 6k^2 + (6k^2)^2 = 16k^{10} - 48k^7 + 36k^4$.`]],
     [r`36y^6 - \frac{4}{49}y^2`, ['6y^3+2/7y', '6y^3-2/7y'], 'y', [r`Las bases son $6y^3$ y $\frac{2}{7}y$.`, r`$\left(6y^3 + \frac{2}{7}y\right) \cdot \left(6y^3 - \frac{2}{7}y\right)$.`]]),
   roots(
-    [r`-\sqrt{13}`, -Math.sqrt(13), [r`$13 = 3^2 + 2^2$: catetos 3 y 2. La hipotenusa se lleva desde el 0 hacia la izquierda: $-\sqrt{13} \approx -3{,}61$.`]],
-    [r`\sqrt{7}`, Math.sqrt(7), [r`$7 = 4^2 - 3^2$: triángulo rectángulo de hipotenusa 4 y un cateto 3; el otro mide $\sqrt{7} \approx 2{,}65$. Con el compás se lleva desde el 0 hacia la derecha.`]],
+    rootArgs(3, 2, true),
+    rootArgs(4, 2),
   ),
 ]
 
